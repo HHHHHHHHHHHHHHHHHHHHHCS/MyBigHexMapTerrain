@@ -16,13 +16,11 @@ public class HexGrid : MonoBehaviour
     private HexCell[] cells;
     private Canvas gridCanvas;
     private HexMesh hexMesh;
-    private Camera mainCam;
 
     private void Awake()
     {
         gridCanvas = GetComponentInChildren<Canvas>();
         hexMesh = GetComponentInChildren<HexMesh>();
-        mainCam = Camera.main;
 
         cells = new HexCell[height * width];
 
@@ -42,19 +40,12 @@ public class HexGrid : MonoBehaviour
         hexMesh.Triangulate(cells);
     }
 
-    private void Update()
-    {
-        if(Input.GetMouseButton(0))
-        {
-            HandleInput();
-        }
-    }
 
     private void CreateCell(int x, int z, int i)
     {
         Vector3 position = new Vector3
         {
-            x = (x + z * 0.5f - z / 2) * (HexMetrics.innerRadius * 2f),
+            x = (x + z % 2 * 0.5f) * (HexMetrics.innerRadius * 2f),
             y = 0f,
             z = z * (HexMetrics.outerRadius * 1.5f)
         };
@@ -72,23 +63,14 @@ public class HexGrid : MonoBehaviour
         label.text = cell.coordinates.ToStringOnSeparateLines();
     }
 
-    private void HandleInput()
-    {
-        Ray inputRay = mainCam.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(inputRay, out RaycastHit hit))
-        {
-            TouchCell(hit.point);
-        }
-    }
-
-    private void TouchCell(Vector3 position)
+    public void ColorCell(Vector3 position,Color color)
     {
         position = hexMesh.transform.InverseTransformPoint(position);
         HexCoordinates coordinates = HexCoordinates.FromPosition(position);
         int index = coordinates.X + coordinates.Z * width + coordinates.Z / 2;
         HexCell cell = cells[index];
-        cell.color = touchedColor;
+        cell.color = color;
         hexMesh.Triangulate(cells);
-        Debug.Log("touched at:" + coordinates);
+        //Debug.Log("touched at:" + coordinates);
     }
 }
