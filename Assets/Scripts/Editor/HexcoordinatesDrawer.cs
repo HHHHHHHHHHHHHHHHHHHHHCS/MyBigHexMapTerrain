@@ -10,7 +10,7 @@ public class HexcoordinatesDrawer : PropertyDrawer
     {
         HexCoordinates hexCoordinates = new HexCoordinates(
             property.FindPropertyRelative("x").intValue,
-            //property.FindPropertyRelative("y").intValue,
+            property.FindPropertyRelative("y").intValue,
             property.FindPropertyRelative("z").intValue
             );
         position = EditorGUI.PrefixLabel(position, label);

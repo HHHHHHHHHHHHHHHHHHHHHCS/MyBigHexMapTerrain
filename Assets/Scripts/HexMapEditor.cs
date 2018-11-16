@@ -48,7 +48,10 @@ public class HexMapEditor : MonoBehaviour
 
     public void ResetColor()
     {
-        toggleGroup.SetAllTogglesOff();
+        foreach(var item in toggles)
+        {
+            item.isOn = false;
+        }
         toggles[0].isOn = true;
         SelectColor(0);
     }

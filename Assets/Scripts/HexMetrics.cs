@@ -8,7 +8,7 @@ public sealed class HexMetrics
     public const float outerLength = 0.866025404f;//根号(3)/2
     public const float innerRadius = outerRadius * outerLength;
 
-    public static Vector3[] corners =
+    private static Vector3[] corners =
     {
         new Vector3(0f,0f,outerRadius),
         new Vector3(innerRadius,0f,0.5f*outerRadius),
@@ -18,4 +18,15 @@ public sealed class HexMetrics
         new Vector3(-innerRadius,0f,0.5f*outerRadius),
         new Vector3(0f,0f,outerRadius),
     };
+
+    public static Vector3 GetFirstCorner(HexDirection direction)
+    {
+        return corners[(int)direction];
+    }
+
+    public static Vector3 GetSecondCorner(HexDirection direction)
+    {
+        return corners[(int)direction + 1];
+    }
+
 }

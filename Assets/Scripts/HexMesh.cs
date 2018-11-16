@@ -40,17 +40,28 @@ public class HexMesh : MonoBehaviour
         meshCollider.sharedMesh = hexMesh;
     }
 
-    private void Triangulate(HexCell cell)
+    public void Triangulate(HexDirection direction, HexCell cell)
     {
         Vector3 center = cell.transform.localPosition;
-        for (int i = 0; i < 6; i++)
-        {
-            AddTriangle(center
-                 , center + HexMetrics.corners[i]
-                 , center + HexMetrics.corners[i + 1]);
-            AddTriangleColor(cell.color);
-        }
+        AddTriangle(
+            center,
+            center + HexMetrics.GetFirstCorner(direction),
+            center + HexMetrics.GetSecondCorner(direction));
+        HexCell preNeighbor = cell.GetNeighbor(direction.Previous()) ?? cell;
+        HexCell neighbor = cell.GetNeighbor(direction) ?? cell;
+        HexCell nextNeighbor = cell.GetNeighbor(direction.Next()) ?? cell;
+        Color midlleColor = cell.color + neighbor.color;
+        AddTriangleColor(cell.color
+            , (midlleColor + preNeighbor.color) / 3
+            , (midlleColor + nextNeighbor.color) / 3);
+    }
 
+    private void Triangulate(HexCell cell)
+    {
+        for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
+        {
+            Triangulate(d, cell);
+        }
     }
 
     private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
@@ -64,10 +75,10 @@ public class HexMesh : MonoBehaviour
         triangles.Add(vertexIndex + 2);
     }
 
-    private void AddTriangleColor(Color color)
+    private void AddTriangleColor(Color c1, Color c2, Color c3)
     {
-        colors.Add(color);
-        colors.Add(color);
-        colors.Add(color);
+        colors.Add(c1);
+        colors.Add(c2);
+        colors.Add(c3);
     }
 }
