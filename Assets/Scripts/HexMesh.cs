@@ -82,7 +82,7 @@ public class HexMesh : MonoBehaviour
             AddQuad(v1, v2, v3, v4);
             AddQuadColor(cell.color, neighbor.color);
         }
-            
+
 
         HexCell nextNeightbor = cell.GetNeighbor(direction.Next());
         if (direction <= HexDirection.E && nextNeightbor != null)
@@ -90,8 +90,25 @@ public class HexMesh : MonoBehaviour
             Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
             v5.y = nextNeightbor.Elevation * HexMetrics.elevationStep;
 
-            AddTriangle(v2, v4, v5);
-            AddTriangleColor(cell.color, neighbor.color, nextNeightbor.color);
+            if (cell.Elevation <= neighbor.Elevation)
+            {
+                if (cell.Elevation <= nextNeightbor.Elevation)
+                {
+                    TriangulateCorner(v2, cell, v4, neighbor, v5, nextNeightbor);
+                }
+                else
+                {
+                    TriangulateCorner(v5, nextNeightbor, v2, cell, v4, neighbor);
+                }
+            }
+            else if (nextNeightbor.Elevation <= nextNeightbor.Elevation)
+            {
+                TriangulateCorner(v4, neighbor, v5, nextNeightbor, v2, cell);
+            }
+            else
+            {
+                TriangulateCorner(v5, nextNeightbor, v2, cell, v4, neighbor);
+            }
         }
     }
 
@@ -103,6 +120,15 @@ public class HexMesh : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 生成两边的桥
+    /// </summary>
+    /// <param name="beginLeft"></param>
+    /// <param name="beginRight"></param>
+    /// <param name="beginCell"></param>
+    /// <param name="endLeft"></param>
+    /// <param name="endRight"></param>
+    /// <param name="endCell"></param>
     private void TriangulateEdgeTerraces(
         Vector3 beginLeft, Vector3 beginRight, HexCell beginCell
         , Vector3 endLeft, Vector3 endRight, HexCell endCell)
@@ -114,7 +140,7 @@ public class HexMesh : MonoBehaviour
         AddQuad(beginLeft, beginRight, v3, v4);
         AddQuadColor(beginCell.color, c2);
 
-        for(int i=2;i<HexMetrics.terraceSteps;i++)
+        for (int i = 2; i < HexMetrics.terraceSteps; i++)
         {
             Vector3 v1 = v3;
             Vector3 v2 = v4;
@@ -130,6 +156,105 @@ public class HexMesh : MonoBehaviour
         AddQuad(v3, v4, endLeft, endRight);
         AddQuadColor(c2, endCell.color);
     }
+
+    /// <summary>
+    /// 生成三遍交界处的小三角形
+    /// </summary>
+    /// <param name="bottom"></param>
+    /// <param name="bottomCell"></param>
+    /// <param name="left"></param>
+    /// <param name="leftCell"></param>
+    /// <param name="right"></param>
+    /// <param name="rightCell"></param>
+    private void TriangulateCorner(
+        Vector3 bottom, HexCell bottomCell
+        , Vector3 left, HexCell leftCell
+        , Vector3 right, HexCell rightCell
+        )
+    {
+        HexEdgeType leftEdgeType = bottomCell.GetEdgeType(leftCell);
+        HexEdgeType rightEdgeType = bottomCell.GetEdgeType(rightCell);
+
+        if (leftEdgeType == HexEdgeType.Slope)
+        {
+            if (rightEdgeType == HexEdgeType.Slope)
+            {
+                TriangularCornerTerraces(bottom, bottomCell
+                    , left, leftCell, right, rightCell);
+            }
+            else if (rightEdgeType == HexEdgeType.Flat)
+            {
+                TriangularCornerTerraces(left, leftCell
+                    , right, rightCell, bottom, bottomCell);
+            }
+            else
+            {
+                TriangularCornerTerracesCliff(bottom, bottomCell
+                    , left, leftCell, right, rightCell);
+            }
+        }
+        else if (rightEdgeType == HexEdgeType.Slope)
+        {
+            if (leftEdgeType == HexEdgeType.Flat)
+            {
+                TriangularCornerTerraces(right, rightCell
+                    , bottom, bottomCell, left, leftCell);
+            }
+        }
+        else
+        {
+            AddTriangle(bottom, left, right);
+            AddTriangleColor(bottomCell.color, leftCell.color, rightCell.color);
+        }
+    }
+
+    /// <summary>
+    /// 最多跨一级的 三角形  begin是顶点
+    /// </summary>
+    /// <param name="begin"></param>
+    /// <param name="beginCell"></param>
+    /// <param name="left"></param>
+    /// <param name="leftCell"></param>
+    /// <param name="right"></param>
+    /// <param name="rightCell"></param>
+    private void TriangularCornerTerraces(
+        Vector3 begin, HexCell beginCell,
+        Vector3 left, HexCell leftCell,
+        Vector3 right, HexCell rightCell)
+    {
+        Vector3 v3 = HexMetrics.TerraceLerp(begin, left, 1);
+        Vector3 v4 = HexMetrics.TerraceLerp(begin, right, 1);
+        Color c3 = HexMetrics.TerraceLerp(beginCell.color, leftCell.color, 1);
+        Color c4 = HexMetrics.TerraceLerp(beginCell.color, rightCell.color, 1);
+
+        AddTriangle(begin, v3, v4);
+        AddTriangleColor(beginCell.color, c3, c4);
+
+        for (int i = 2; i < HexMetrics.terraceSteps; i++)
+        {
+            Vector3 v1 = v3;
+            Vector3 v2 = v4;
+            Color c1 = c3;
+            Color c2 = c4;
+            v3 = HexMetrics.TerraceLerp(begin, left, i);
+            v4 = HexMetrics.TerraceLerp(begin, right, i);
+            c3 = HexMetrics.TerraceLerp(beginCell.color, leftCell.color, i);
+            c4 = HexMetrics.TerraceLerp(beginCell.color, rightCell.color, i);
+            AddQuad(v1, v2, v3, v4);
+            AddQuadColor(c1, c2, c3, c4);
+        }
+
+        AddQuad(v3, v4, left, right);
+        AddQuadColor(c3, c4, leftCell.color, rightCell.color);
+    }
+
+    private void TriangularCornerTerracesCliff(
+        Vector3 begin, HexCell beginCell
+        , Vector3 left, HexCell leftCell
+        , Vector3 right, HexCell rightCell)
+    {
+    }
+
 
     private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
     {
@@ -175,5 +300,13 @@ public class HexMesh : MonoBehaviour
         colors.Add(c1);
         colors.Add(c2);
         colors.Add(c2);
+    }
+
+    private void AddQuadColor(Color c1, Color c2, Color c3, Color c4)
+    {
+        colors.Add(c1);
+        colors.Add(c2);
+        colors.Add(c3);
+        colors.Add(c4);
     }
 }
