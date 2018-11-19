@@ -2,11 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 六边形方向
+/// </summary>
 public enum HexDirection
 {
     NE, E, SE, SW, W, NW
 }
 
+/// <summary>
+/// 地形的种类
+/// </summary>
+public enum HexEdgeType
+{
+    Flat,Slope, Cliff//平地,临界坡,大坡
+}
+
+
+/// <summary>
+/// 地形的数据扩展方法
+/// </summary>
 public static class HexDirectionExtensions
 {
     public static HexDirection Opposite(this HexDirection direction)
@@ -23,4 +38,6 @@ public static class HexDirectionExtensions
     {
         return direction == HexDirection.NW ? HexDirection.NE : (direction + 1);
     }
+
 }
+

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 大块地形 由N个hexcell 组成
+/// </summary>
 public class HexGrid : MonoBehaviour
 {
     public int width = 6;
@@ -52,6 +55,7 @@ public class HexGrid : MonoBehaviour
 
         HexCell cell = cells[i] = Instantiate(cellPrefab);
         cell.transform.SetParent(hexMesh.transform, false);
+  
         cell.transform.localPosition = position;
         cell.coordinates = HexCoordinates.FromOffsetCoordinates(x, z);
         cell.color = defaultColor;
@@ -80,23 +84,33 @@ public class HexGrid : MonoBehaviour
             }
         }
 
-        /*坐标的显示
+        //坐标的显示
         Text label = Instantiate(cellLabelPrefab);
         label.rectTransform.SetParent(gridCanvas.transform, false);
         label.rectTransform.anchoredPosition
             = new Vector2(position.x, position.z);
         label.text = cell.coordinates.ToStringOnSeparateLines();
-        */
+        cell.uiRect = label.rectTransform;
     }
 
-    public void ColorCell(Vector3 position, Color color)
+    public HexCell GetCell (Vector3 position)
     {
         position = hexMesh.transform.InverseTransformPoint(position);
         HexCoordinates coordinates = HexCoordinates.FromPosition(position);
         int index = coordinates.X + coordinates.Z * width + coordinates.Z / 2;
-        HexCell cell = cells[index];
-        cell.color = color;
-        hexMesh.Triangulate(cells);
         //Debug.Log("touched at:" + coordinates);//坐标
+        return cells[index];
+    }
+
+    public void ColorCell(Vector3 position, Color color)
+    {
+        HexCell cell =GetCell(position);
+        cell.color = color;
+        Refresh();
+    }
+
+    public void Refresh()
+    {
+        hexMesh.Triangulate(cells);
     }
 }

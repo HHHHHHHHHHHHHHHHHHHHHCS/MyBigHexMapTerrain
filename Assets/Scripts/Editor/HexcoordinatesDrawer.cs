@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+/// <summary>
+/// 地形数据的编辑面板显示
+/// </summary>
 [CustomPropertyDrawer(typeof(HexCoordinates))]
 public class HexcoordinatesDrawer : PropertyDrawer
 {

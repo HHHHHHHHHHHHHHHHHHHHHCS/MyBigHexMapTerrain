@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 地形的坐标数据转换
+/// </summary>
 [System.Serializable]
 public struct HexCoordinates
 {

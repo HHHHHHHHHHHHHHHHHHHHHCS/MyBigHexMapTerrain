@@ -4,23 +4,35 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// 地形的编辑器
+/// </summary>
 public class HexMapEditor : MonoBehaviour
 {
     public Color[] colors;
 
     private ToggleGroup toggleGroup;
+    private Slider elevationSlider;
     private Toggle[] toggles;
     private HexGrid hexGrid;
     private Color activeColor;
     private Camera mainCam;
+    private int activeElevation;
 
 
     private void Awake()
     {
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
-        toggleGroup = transform.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
+        Transform root = transform;
+        toggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
+        elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
         toggles = toggleGroup.GetComponentsInChildren<Toggle>();
+
+
+
+
+        elevationSlider.onValueChanged.AddListener(SetElevation);
         ResetColor();
         foreach (var item in toggles)
         {
@@ -42,13 +54,26 @@ public class HexMapEditor : MonoBehaviour
         Ray inputRay = mainCam.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(inputRay, out RaycastHit hit))
         {
-            hexGrid.ColorCell(hit.point, activeColor);
+            EditCell(hexGrid.GetCell(hit.point));
         }
+    }
+
+    private void EditCell(HexCell cell)
+    {
+        cell.color = activeColor;
+        cell.Elevation = activeElevation;
+        hexGrid.Refresh();
+    }
+
+    public void SetElevation(float elevation)
+    {
+        activeElevation = (int)elevation;
+        //elevationSlider.value = activeElevation / elevationSlider.maxValue;
     }
 
     public void ResetColor()
     {
-        foreach(var item in toggles)
+        foreach (var item in toggles)
         {
             item.isOn = false;
         }
@@ -58,7 +83,7 @@ public class HexMapEditor : MonoBehaviour
 
     public void SelectColor(int index)
     {
-        if(index<colors.Length)
+        if (index < colors.Length)
         {
             activeColor = colors[index];
         }

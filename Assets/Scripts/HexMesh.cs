@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 地形的整个mesh
+/// </summary>
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class HexMesh : MonoBehaviour
 {
@@ -68,14 +71,26 @@ public class HexMesh : MonoBehaviour
         Vector3 bridge = HexMetrics.GetBridge(direction);
         Vector3 v3 = v1 + bridge;
         Vector3 v4 = v2 + bridge;
+        v3.y = v4.y = neighbor.Elevation * HexMetrics.elevationStep;
 
-        AddQuad(v1, v2, v3, v4);
-        AddQuadColor(cell.color, neighbor.color);
+        if (cell.GetEdgeType(direction) == HexEdgeType.Slope)
+        {
+            TriangulateEdgeTerraces(v1, v2, cell, v3, v4, neighbor);
+        }
+        else
+        {
+            AddQuad(v1, v2, v3, v4);
+            AddQuadColor(cell.color, neighbor.color);
+        }
+            
 
         HexCell nextNeightbor = cell.GetNeighbor(direction.Next());
         if (direction <= HexDirection.E && nextNeightbor != null)
         {
-            AddTriangle(v2, v4, v2+HexMetrics.GetBridge(direction.Next()));
+            Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
+            v5.y = nextNeightbor.Elevation * HexMetrics.elevationStep;
+
+            AddTriangle(v2, v4, v5);
             AddTriangleColor(cell.color, neighbor.color, nextNeightbor.color);
         }
     }
@@ -86,6 +101,34 @@ public class HexMesh : MonoBehaviour
         {
             Triangulate(d, cell);
         }
+    }
+
+    private void TriangulateEdgeTerraces(
+        Vector3 beginLeft, Vector3 beginRight, HexCell beginCell
+        , Vector3 endLeft, Vector3 endRight, HexCell endCell)
+    {
+        Vector3 v3 = HexMetrics.TerraceLerp(beginLeft, endLeft, 1);
+        Vector3 v4 = HexMetrics.TerraceLerp(beginRight, endRight, 1);
+        Color c2 = HexMetrics.TerraceLerp(beginCell.color, endCell.color, 1);
+
+        AddQuad(beginLeft, beginRight, v3, v4);
+        AddQuadColor(beginCell.color, c2);
+
+        for(int i=2;i<HexMetrics.terraceSteps;i++)
+        {
+            Vector3 v1 = v3;
+            Vector3 v2 = v4;
+
+            Color c1 = c2;
+            v3 = HexMetrics.TerraceLerp(beginLeft, endLeft, i);
+            v4 = HexMetrics.TerraceLerp(beginRight, endRight, i);
+            c2 = HexMetrics.TerraceLerp(beginCell.color, endCell.color, i);
+            AddQuad(v1, v2, v3, v4);
+            AddQuadColor(c1, c2);
+        }
+
+        AddQuad(v3, v4, endLeft, endRight);
+        AddQuadColor(c2, endCell.color);
     }
 
     private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
