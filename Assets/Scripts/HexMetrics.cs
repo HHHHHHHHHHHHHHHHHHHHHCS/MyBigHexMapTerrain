@@ -25,7 +25,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 混合度
     /// </summary>
-    public const float solidFactor = 0.75f;
+    public const float solidFactor = 0.8f;
 
     /// <summary>
     /// 混合度差
@@ -35,7 +35,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 高度步长
     /// </summary>
-    public const float elevationStep = 5f;
+    public const float elevationStep = 3f;
 
     /// <summary>
     /// 地形有几个台阶
@@ -56,6 +56,23 @@ public sealed class HexMetrics
     /// 同上(terraceSteps),分成几块的百分比
     /// </summary>
     public const float verticalTerraceStepSize = 1f / (terracesPerslope + 1);
+
+    /// <summary>
+    /// 噪音 地形凹凸的强度
+    /// </summary>
+    public const float cellPerturbStrength = 5f;
+
+    /// <summary>
+    /// 噪音 噪音的跨度
+    /// </summary>
+    public const float noiseScale = 0.003f;
+
+    public const float elevationPerturbStrength = 1.5f;
+
+    /// <summary>
+    /// 地形的噪音图
+    /// </summary>
+    public static Texture2D noiseSource;
 
     private static Vector3[] corners =
     {
@@ -104,13 +121,11 @@ public sealed class HexMetrics
         return a;
     }
 
-    public static Color TerraceLerp(Color a,Color b,int step)
+    public static Color TerraceLerp(Color a, Color b, int step)
     {
         float h = step * horizontalTerraceStepSize;
         return Color.Lerp(a, b, h);
     }
-
-
 
     public static HexEdgeType GetEdgeType(int elevation1, int elevation2)
     {
@@ -125,5 +140,10 @@ public sealed class HexMetrics
             return HexEdgeType.Slope;
         }
         return HexEdgeType.Cliff;
+    }
+
+    public static Vector4 SampleNoise(Vector3 position)
+    {
+        return noiseSource.GetPixelBilinear(position.x * noiseScale, position.y * noiseScale);
     }
 }
