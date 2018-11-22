@@ -11,28 +11,37 @@ public class HexMapEditor : MonoBehaviour
 {
     public Color[] colors;
 
-    private ToggleGroup toggleGroup;
-    private Slider elevationSlider;
     private Toggle[] toggles;
+    private ToggleGroup toggleGroup;
+    private Toggle elevationToggle;
+    private Slider elevationSlider;
+    private Slider brushSlider;
+    private Toggle labelsToggle;
     private HexGrid hexGrid;
     private Color activeColor;
     private Camera mainCam;
     private int activeElevation;
+    private int brushSize;
+    private bool applyColor;
+    private bool applyElevation = true;
 
 
     private void Awake()
     {
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
-        Transform root = transform;
+        Transform root = transform.Find("Bg");
         toggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
+        elevationToggle = root.Find("Toggle_Elevation").GetComponent<Toggle>();
         elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
+        brushSlider = root.Find("Slider_BrustSize").GetComponent<Slider>();
+        labelsToggle = root.Find("Toggle_Labels").GetComponent<Toggle>();
         toggles = toggleGroup.GetComponentsInChildren<Toggle>();
 
-
-
-
+        elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
         elevationSlider.onValueChanged.AddListener(SetElevation);
+        brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
+        labelsToggle.onValueChanged.AddListener(ShowUI);
         ResetColor();
         foreach (var item in toggles)
         {
@@ -54,20 +63,49 @@ public class HexMapEditor : MonoBehaviour
         Ray inputRay = mainCam.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(inputRay, out RaycastHit hit))
         {
-            EditCell(hexGrid.GetCell(hit.point));
+            EditCells(hexGrid.GetCell(hit.point));
+        }
+    }
+
+    private void EditCells(HexCell center)
+    {
+        int centerX = center.coordinates.X;
+        int centerZ = center.coordinates.Z;
+
+        for (int r = 0, z = centerZ - brushSize; z <= centerZ; z++, r++)
+        {
+            for (int x = centerX - r; x <= centerX + brushSize; x++)
+            {
+                EditCell(hexGrid.GetCell(new HexCoordinates(x, z)));
+            }
+        }
+        for (int r = 0, z = centerZ + brushSize; z > centerZ; z--, r++)
+        {
+            for (int x = centerX - brushSize; x <= centerX + r; x++)
+            {
+                EditCell(hexGrid.GetCell(new HexCoordinates(x, z)));
+            }
         }
     }
 
     private void EditCell(HexCell cell)
     {
-        cell.Color = activeColor;
-        cell.Elevation = activeElevation;
+        if (cell)
+        {
+            if (applyColor)
+            {
+                cell.Color = activeColor;
+            }
+            if (applyElevation)
+            {
+                cell.Elevation = activeElevation;
+            }
+        }
     }
 
     public void SetElevation(float elevation)
     {
         activeElevation = (int)elevation;
-        //elevationSlider.value = activeElevation / elevationSlider.maxValue;
     }
 
     public void ResetColor()
@@ -82,6 +120,13 @@ public class HexMapEditor : MonoBehaviour
 
     public void SelectColor(int index)
     {
+        applyColor = index > 0;
+        if (!applyColor)
+        {
+            return;
+        }
+
+        index -= 1;
         if (index < colors.Length)
         {
             activeColor = colors[index];
@@ -103,5 +148,10 @@ public class HexMapEditor : MonoBehaviour
                 break;
             }
         }
+    }
+
+    public void ShowUI(bool visible)
+    {
+        hexGrid.ShowUI(visible);
     }
 }
