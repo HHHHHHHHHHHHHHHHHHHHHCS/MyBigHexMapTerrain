@@ -40,7 +40,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 地形有几个台阶
     /// </summary>
-    public const int terracesPerslope = 2;
+    public const int terracesPerSlope = 2;
 
     /// <summary>
     /// 同上(terracesPerslope),分成几块的百分比
@@ -50,12 +50,12 @@ public sealed class HexMetrics
     /// <summary>
     /// 进行台阶合成用,把最高点最低点的X轴分成几块
     /// </summary>
-    public const int terraceSteps = terracesPerslope * 2 + 1;
+    public const int terraceSteps = terracesPerSlope * 2 + 1;
 
     /// <summary>
     /// 同上(terraceSteps),分成几块的百分比
     /// </summary>
-    public const float verticalTerraceStepSize = 1f / (terracesPerslope + 1);
+    public const float verticalTerraceStepSize = 1f / (terracesPerSlope + 1);
 
     /// <summary>
     /// 噪音 地形凹凸的强度
@@ -67,7 +67,15 @@ public sealed class HexMetrics
     /// </summary>
     public const float noiseScale = 0.003f;
 
+    /// <summary>
+    /// 小地形块的强度
+    /// </summary>
     public const float elevationPerturbStrength = 1.5f;
+
+    /// <summary>
+    /// 地形小块的尺寸
+    /// </summary>
+    public const int chunkSizeX = 5, chunkSizeZ = 5;
 
     /// <summary>
     /// 地形的噪音图
