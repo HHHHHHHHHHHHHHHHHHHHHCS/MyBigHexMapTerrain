@@ -56,14 +56,16 @@ public class HexMapEditor : MonoBehaviour
         brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
         labelsToggle.onValueChanged.AddListener(ShowUI);
         ResetColor();
-        foreach (var item in colorToggles)
+        for (int i = 0; i < colorToggles.Length; i++)
         {
-            item.onValueChanged.AddListener(ChangeColorToggle);
+            int temp = i;
+            colorToggles[i].onValueChanged.AddListener(bo => ChangeColorToggle(bo, temp));
         }
         ResetRiver();
-        foreach (var item in colorToggles)
+        for (int i = 0; i < riverToggles.Length; i++)
         {
-            item.onValueChanged.AddListener(ChangeRiverToggle);
+            int temp = i;
+            riverToggles[i].onValueChanged.AddListener(bo => ChangeRiverToggle(bo, temp));
         }
     }
 
@@ -86,7 +88,7 @@ public class HexMapEditor : MonoBehaviour
         if (Physics.Raycast(inputRay, out RaycastHit hit))
         {
             HexCell currentCell = hexGrid.GetCell(hit.point);
-            if(previousCell&&previousCell!=currentCell)
+            if (previousCell && previousCell != currentCell)
             {
                 ValidateDrag(currentCell);
             }
@@ -140,10 +142,10 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.RemoveRiver();
             }
-            else if(isDrag&&riverMode==OptionalToggle.Yes)
+            else if (isDrag && riverMode == OptionalToggle.Yes)
             {
                 HexCell otherCell = cell.GetNeighbor(dragDirection.Opposite());
-                if(otherCell)
+                if (otherCell)
                 {
                     previousCell.SetOutgoingRiver(dragDirection);
                 }
@@ -186,16 +188,11 @@ public class HexMapEditor : MonoBehaviour
         }
     }
 
-    private void ChangeColorToggle(bool bo)
+    private void ChangeColorToggle(bool bo, int index)
     {
-        foreach (var toggle in colorToggleGroup.ActiveToggles())
+        if (bo)
         {
-            if (toggle.isOn)
-            {
-                var index = toggle.transform.GetSiblingIndex();
-                SelectColor(index);
-                break;
-            }
+            SelectColor(index);
         }
     }
 
@@ -214,26 +211,21 @@ public class HexMapEditor : MonoBehaviour
         riverMode = (OptionalToggle)mode;
     }
 
-    private void ChangeRiverToggle(bool bo)
+    private void ChangeRiverToggle(bool bo, int index)
     {
-        foreach (var toggle in riverToggleGroup.ActiveToggles())
+        if (bo)
         {
-            if (toggle.isOn)
-            {
-                var index = toggle.transform.GetSiblingIndex();
-                SetRiverMode(index);
-                break;
-            }
+            SetRiverMode(index);
         }
     }
 
     private void ValidateDrag(HexCell currentCell)
     {
-        for(dragDirection=HexDirection.NE;
-            dragDirection<=HexDirection.NW;
+        for (dragDirection = HexDirection.NE;
+            dragDirection <= HexDirection.NW;
             dragDirection++)
         {
-            if(previousCell.GetNeighbor(dragDirection)==currentCell)
+            if (previousCell.GetNeighbor(dragDirection) == currentCell)
             {
                 isDrag = true;
                 return;

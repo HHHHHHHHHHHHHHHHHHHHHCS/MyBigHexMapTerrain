@@ -60,7 +60,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 噪音 地形凹凸的强度
     /// </summary>
-    public const float cellPerturbStrength = 5f;
+    public const float cellPerturbStrength = 0f;
 
     /// <summary>
     /// 噪音 噪音的跨度
@@ -76,6 +76,11 @@ public sealed class HexMetrics
     /// 地形小块的尺寸
     /// </summary>
     public const int chunkSizeX = 5, chunkSizeZ = 5;
+
+    /// <summary>
+    /// 河床的凹陷程度
+    /// </summary>
+    public const float streamBedElevationOffset = -1f;
 
     /// <summary>
     /// 地形的噪音图

@@ -18,6 +18,13 @@ public class HexCell : MonoBehaviour
     private bool hasIncomingRiver, hasOutgoingRiver;
     private HexDirection incomingRiver, outgoingRiver;
 
+    public bool HasIncomingRiver { get => hasIncomingRiver; private set => hasIncomingRiver = value; }
+    public bool HasOutgoingRiver { get => hasOutgoingRiver; private set => hasOutgoingRiver = value; }
+    public HexDirection IncomingRiver { get => incomingRiver; private set => incomingRiver = value; }
+    public HexDirection OutgoingRiver { get => outgoingRiver; private set => outgoingRiver = value; }
+    public bool HasRiver { get => HasIncomingRiver || HasOutgoingRiver; }
+    public bool HasRiverBeginOrEnd { get => HasIncomingRiver != HasOutgoingRiver; }
+
     public int Elevation
     {
         get
@@ -42,11 +49,11 @@ public class HexCell : MonoBehaviour
             uiPosition.z = -position.y;
             uiRect.localPosition = uiPosition;
 
-            if(HasOutgoingRiver&&Elevation<GetNeighbor(outgoingRiver).Elevation)
+            if (HasOutgoingRiver && Elevation < GetNeighbor(outgoingRiver).Elevation)
             {
                 RemoveOutgoingRiver();
             }
-            if(HasIncomingRiver&&Elevation>GetNeighbor(IncomingRiver).Elevation)
+            if (HasIncomingRiver && Elevation > GetNeighbor(IncomingRiver).Elevation)
             {
                 RemoveIncomingRiver();
             }
@@ -73,7 +80,6 @@ public class HexCell : MonoBehaviour
         }
     }
 
-
     public Vector3 Position
     {
         get
@@ -82,12 +88,16 @@ public class HexCell : MonoBehaviour
         }
     }
 
-    public bool HasIncomingRiver { get => hasIncomingRiver; private set => hasIncomingRiver = value; }
-    public bool HasOutgoingRiver { get => hasOutgoingRiver; private set => hasOutgoingRiver = value; }
-    public HexDirection IncomingRiver { get => incomingRiver; private set => incomingRiver = value; }
-    public HexDirection OutgoingRiver { get => outgoingRiver; private set => outgoingRiver = value; }
-    public bool HasRiver { get => HasIncomingRiver || HasOutgoingRiver; }
-    public bool HasRiverBeginOrEnd { get => HasIncomingRiver != HasOutgoingRiver; }
+    public float StreamBedY
+    {
+        get
+        {
+            return (elevation + HexMetrics.streamBedElevationOffset)
+                * HexMetrics.elevationStep;
+        }
+    }
+
+
 
     public HexCell GetNeighbor(HexDirection direction)
     {
