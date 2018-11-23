@@ -9,43 +9,61 @@ using UnityEngine.UI;
 /// </summary>
 public class HexMapEditor : MonoBehaviour
 {
+    private enum OptionalToggle
+    {
+        Ignore, Yes, No
+    }
+
     public Color[] colors;
 
-    private Toggle[] toggles;
-    private ToggleGroup toggleGroup;
-    private Toggle elevationToggle;
-    private Slider elevationSlider;
-    private Slider brushSlider;
-    private Toggle labelsToggle;
+
+    private ToggleGroup colorToggleGroup;
+    private Toggle[] colorToggles;
+    private ToggleGroup riverToggleGroup;
+    private Toggle[] riverToggles;
+
     private HexGrid hexGrid;
-    private Color activeColor;
     private Camera mainCam;
+
+    private Color activeColor;
     private int activeElevation;
     private int brushSize;
     private bool applyColor;
     private bool applyElevation = true;
+    private OptionalToggle riverMode = OptionalToggle.Ignore;
 
+    private bool isDrag;
+    private HexDirection dragDirection;
+    private HexCell previousCell;
 
     private void Awake()
     {
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
         Transform root = transform.Find("Bg");
-        toggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
-        elevationToggle = root.Find("Toggle_Elevation").GetComponent<Toggle>();
-        elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
-        brushSlider = root.Find("Slider_BrustSize").GetComponent<Slider>();
-        labelsToggle = root.Find("Toggle_Labels").GetComponent<Toggle>();
-        toggles = toggleGroup.GetComponentsInChildren<Toggle>();
+        colorToggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
+        colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
+        var elevationToggle = root.Find("Toggle_Elevation").GetComponent<Toggle>();
+        var elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
+        var brushSlider = root.Find("Slider_BrustSize").GetComponent<Slider>();
+        var labelsToggle = root.Find("Toggle_Labels").GetComponent<Toggle>();
+        riverToggleGroup = root.Find("ToggleGroup_River").GetComponent<ToggleGroup>();
+        riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
+
 
         elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
         elevationSlider.onValueChanged.AddListener(SetElevation);
         brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
         labelsToggle.onValueChanged.AddListener(ShowUI);
         ResetColor();
-        foreach (var item in toggles)
+        foreach (var item in colorToggles)
         {
-            item.onValueChanged.AddListener(ChangeToggle);
+            item.onValueChanged.AddListener(ChangeColorToggle);
+        }
+        ResetRiver();
+        foreach (var item in colorToggles)
+        {
+            item.onValueChanged.AddListener(ChangeRiverToggle);
         }
     }
 
@@ -56,6 +74,10 @@ public class HexMapEditor : MonoBehaviour
         {
             HandleInput();
         }
+        else
+        {
+            previousCell = null;
+        }
     }
 
     private void HandleInput()
@@ -63,7 +85,21 @@ public class HexMapEditor : MonoBehaviour
         Ray inputRay = mainCam.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(inputRay, out RaycastHit hit))
         {
-            EditCells(hexGrid.GetCell(hit.point));
+            HexCell currentCell = hexGrid.GetCell(hit.point);
+            if(previousCell&&previousCell!=currentCell)
+            {
+                ValidateDrag(currentCell);
+            }
+            else
+            {
+                isDrag = false;
+            }
+            EditCells(currentCell);
+            previousCell = currentCell;
+        }
+        else
+        {
+            previousCell = null;
         }
     }
 
@@ -100,6 +136,19 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.Elevation = activeElevation;
             }
+            if (riverMode == OptionalToggle.No)
+            {
+                cell.RemoveRiver();
+            }
+            else if(isDrag&&riverMode==OptionalToggle.Yes)
+            {
+                HexCell otherCell = cell.GetNeighbor(dragDirection.Opposite());
+                if(otherCell)
+                {
+                    previousCell.SetOutgoingRiver(dragDirection);
+                }
+
+            }
         }
     }
 
@@ -110,11 +159,11 @@ public class HexMapEditor : MonoBehaviour
 
     public void ResetColor()
     {
-        foreach (var item in toggles)
+        foreach (var item in colorToggles)
         {
             item.isOn = false;
         }
-        toggles[0].isOn = true;
+        colorToggles[0].isOn = true;
         SelectColor(0);
     }
 
@@ -137,9 +186,9 @@ public class HexMapEditor : MonoBehaviour
         }
     }
 
-    private void ChangeToggle(bool bo)
+    private void ChangeColorToggle(bool bo)
     {
-        foreach (var toggle in toggleGroup.ActiveToggles())
+        foreach (var toggle in colorToggleGroup.ActiveToggles())
         {
             if (toggle.isOn)
             {
@@ -148,6 +197,49 @@ public class HexMapEditor : MonoBehaviour
                 break;
             }
         }
+    }
+
+    private void ResetRiver()
+    {
+        foreach (var item in riverToggles)
+        {
+            item.isOn = false;
+        }
+        riverToggles[0].isOn = true;
+        SetRiverMode(0);
+    }
+
+    public void SetRiverMode(int mode)
+    {
+        riverMode = (OptionalToggle)mode;
+    }
+
+    private void ChangeRiverToggle(bool bo)
+    {
+        foreach (var toggle in riverToggleGroup.ActiveToggles())
+        {
+            if (toggle.isOn)
+            {
+                var index = toggle.transform.GetSiblingIndex();
+                SetRiverMode(index);
+                break;
+            }
+        }
+    }
+
+    private void ValidateDrag(HexCell currentCell)
+    {
+        for(dragDirection=HexDirection.NE;
+            dragDirection<=HexDirection.NW;
+            dragDirection++)
+        {
+            if(previousCell.GetNeighbor(dragDirection)==currentCell)
+            {
+                isDrag = true;
+                return;
+            }
+        }
+        isDrag = false;
     }
 
     public void ShowUI(bool visible)
