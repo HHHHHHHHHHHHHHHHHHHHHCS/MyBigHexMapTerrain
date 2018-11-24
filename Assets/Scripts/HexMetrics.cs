@@ -13,14 +13,19 @@ public sealed class HexMetrics
     public const float outerRadius = 10f;
 
     /// <summary>
-    /// 斜边率
+    /// 到边的率
     /// </summary>
-    public const float outerLength = 0.866025404f;//根号(3)/2 
+    public const float outerInner = 0.866025404f;//根号(3)/2 
 
     /// <summary>
-    /// 斜边长
+    /// 到顶点的率
     /// </summary>
-    public const float innerRadius = outerRadius * outerLength;
+    public const float innerToOuter = 1f / outerInner;
+
+    /// <summary>
+    /// 六边形到边的长度
+    /// </summary>
+    public const float innerRadius = outerRadius * outerInner;
 
     /// <summary>
     /// 混合度
