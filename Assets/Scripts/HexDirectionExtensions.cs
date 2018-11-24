@@ -31,6 +31,15 @@ public struct EdgeVertices
         v5 = corner2;
     }
 
+    public EdgeVertices(Vector3 corner1,Vector3 corner2,float outerStep)
+    {
+        v1 = corner1;
+        v2 = Vector3.Lerp(corner1, corner2, outerStep);
+        v3 = Vector3.Lerp(corner1, corner2, 0.5f);
+        v4 = Vector3.Lerp(corner1, corner2, 1f - outerStep);
+        v5 = corner2;
+    }
+
     public static EdgeVertices TerraceLerp(EdgeVertices a, EdgeVertices b, int step)
     {
         EdgeVertices result;
@@ -64,5 +73,16 @@ public static class HexDirectionExtensions
         return direction == HexDirection.NW ? HexDirection.NE : (direction + 1);
     }
 
+    public static HexDirection Previous2(this HexDirection direction)
+    {
+        direction -= 2;
+        return direction >= HexDirection.NE ? direction : (direction + 6);
+    }
+
+    public static HexDirection Next2(this HexDirection direction)
+    {
+        direction += 2;
+        return direction <= HexDirection.NW ? direction : (direction - 6);
+    }
 }
 
