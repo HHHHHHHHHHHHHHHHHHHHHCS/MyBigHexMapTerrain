@@ -83,9 +83,14 @@ public sealed class HexMetrics
     public const int chunkSizeX = 5, chunkSizeZ = 5;
 
     /// <summary>
-    /// 河床的凹陷程度
+    /// 河底的凹陷程度 单位格  最后要乘以step
     /// </summary>
     public const float streamBedElevationOffset = -1f;
+
+    /// <summary>
+    /// 河表面的凹陷程度 单位格  最后要乘以step
+    /// </summary>
+    public const float riverSurfaceElevationOffset = -0.5f;
 
     /// <summary>
     /// 地形的噪音图
@@ -113,17 +118,17 @@ public sealed class HexMetrics
         return corners[(int)direction + 1];
     }
 
-    public static Vector3 GetFirstSoliderCorner(HexDirection direction)
+    public static Vector3 GetFirstSolidCorner(HexDirection direction)
     {
         return corners[(int)direction] * solidFactor;
     }
 
-    public static Vector3 GetSecondSoliderCorner(HexDirection direction)
+    public static Vector3 GetSecondSolidCorner(HexDirection direction)
     {
         return corners[(int)direction + 1] * solidFactor;
     }
 
-    public static Vector3 GetSoliderEdgeMiddle(HexDirection direction)
+    public static Vector3 GetSolidEdgeMiddle(HexDirection direction)
     {
         return (corners[(int)direction] + corners[(int)direction + 1])
             * (0.5f * solidFactor);
@@ -169,5 +174,14 @@ public sealed class HexMetrics
     public static Vector4 SampleNoise(Vector3 position)
     {
         return noiseSource.GetPixelBilinear(position.x * noiseScale, position.y * noiseScale);
+    }
+
+    public static Vector3 Perturb(Vector3 position)
+    {
+        Vector4 sample = SampleNoise(position);
+        position.x += (sample.x * 2f - 1f) * cellPerturbStrength;
+        //position.y += (sample.y * 2f - 1f) * HexMetrics.cellPerturbStrength;
+        position.z += (sample.z * 2f - 1f) * cellPerturbStrength;
+        return position;
     }
 }
