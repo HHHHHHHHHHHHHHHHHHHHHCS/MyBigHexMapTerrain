@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 地形的坐标数据转换
+/// 单个cell 的坐标数据
 /// </summary>
 [System.Serializable]
 public struct HexCoordinates

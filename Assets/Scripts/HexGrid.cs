@@ -4,19 +4,17 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 大块地形 由N个hexcell 组成 差不多是manager
+/// 地形的manager
+/// 有全部的HexGridChunk 和 HexCell
 /// </summary>
 public class HexGrid : MonoBehaviour
 {
-    /// <summary>
-    /// 地形大块  有几个地形小块
-    /// </summary>
-    public int chunkCountX = 4, chunkCountZ = 3;
+    public int chunkCountX = 4, chunkCountZ = 3;//有几个地形块
     public HexCell cellPrefab;
     public HexGridChunk chunkPrefab;
     public Text cellLabelPrefab;
     public Color defaultColor = Color.white;
-    public Color touchedColor = Color.red;
+    //public Color touchedColor = Color.red;
     public Texture2D noiseSource;
 
     private HexCell[] cells;

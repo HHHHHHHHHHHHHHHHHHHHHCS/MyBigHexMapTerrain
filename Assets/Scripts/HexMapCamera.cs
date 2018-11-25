@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 摄像机用
+/// </summary>
 public class HexMapCamera : MonoBehaviour
 {
     public HexGrid grid;
-    public float stickMinZoom = -250, stickMaxZoom = -45;
-    public float swivelMinZoom = 90, swivelMaxZoom = 45;
-    public float moveSpeedMinZoom = 400, moveSpeedMaxZoom = 100;
-    public float rotationSpeed = 180;
+    public float stickMinZoom = -250, stickMaxZoom = -45;//视野缩放摄像机的位置
+    public float swivelMinZoom = 90, swivelMaxZoom = 45;//视野缩放 摄像机的观察角度
+    public float moveSpeedMinZoom = 400, moveSpeedMaxZoom = 100;//根据视野缩放摄像机的移动速度
+    public float rotationSpeed = 180;//摄像机的旋转速度
 
     private Transform swivel, stick;
     private float zoom = 1f;
@@ -42,6 +45,10 @@ public class HexMapCamera : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 缩放
+    /// </summary>
+    /// <param name="delta"></param>
     private void AdjustZoom(float delta)
     {
         zoom = Mathf.Clamp01(zoom + delta);
@@ -53,6 +60,11 @@ public class HexMapCamera : MonoBehaviour
         swivel.localRotation = Quaternion.Euler(angle, 0, 0);
     }
 
+    /// <summary>
+    /// 移动
+    /// </summary>
+    /// <param name="xDelta"></param>
+    /// <param name="zDelta"></param>
     private void AdjustPosition(float xDelta, float zDelta)
     {
         Vector3 direction = transform.localRotation * new Vector3(xDelta, 0f, zDelta).normalized;
@@ -65,6 +77,11 @@ public class HexMapCamera : MonoBehaviour
         transform.localPosition = ClampPosition(position);
     }
 
+    /// <summary>
+    /// 限制摄像机的位置
+    /// </summary>
+    /// <param name="postion"></param>
+    /// <returns></returns>
     private Vector3 ClampPosition(Vector3 postion)
     {
         float xMax = (grid.chunkCountX * HexMetrics.chunkSizeX - 0.5f)
@@ -77,6 +94,10 @@ public class HexMapCamera : MonoBehaviour
         return postion;
     }
 
+    /// <summary>
+    /// 旋转
+    /// </summary>
+    /// <param name="delta"></param>
     private void AdjustRotation(float delta)
     {
         rotationAngle += delta * rotationSpeed * Time.deltaTime;

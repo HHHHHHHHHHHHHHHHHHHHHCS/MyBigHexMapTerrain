@@ -18,6 +18,9 @@ public enum HexEdgeType
     Flat, Slope, Cliff//平地,临界坡,大坡
 }
 
+/// <summary>
+/// 把两个顶点 按权切割成几个顶点
+/// </summary>
 public struct EdgeVertices
 {
     public Vector3 v1, v2, v3,v4, v5;

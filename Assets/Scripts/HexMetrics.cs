@@ -97,6 +97,9 @@ public sealed class HexMetrics
     /// </summary>
     public static Texture2D noiseSource;
 
+    /// <summary>
+    /// 六边形的offset
+    /// </summary>
     private static Vector3[] corners =
     {
         new Vector3(0f,0f,outerRadius),
@@ -108,38 +111,75 @@ public sealed class HexMetrics
         new Vector3(0f,0f,outerRadius),
     };
 
+    /// <summary>
+    /// 得到方向所对应的位置
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public static Vector3 GetFirstCorner(HexDirection direction)
     {
         return corners[(int)direction];
     }
 
+    /// <summary>
+    /// 得到下一个方向所对应的位置
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public static Vector3 GetSecondCorner(HexDirection direction)
     {
         return corners[(int)direction + 1];
     }
 
+    /// <summary>
+    /// 得到方向所对应的位置*混合度
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public static Vector3 GetFirstSolidCorner(HexDirection direction)
     {
-        return corners[(int)direction] * solidFactor;
+        return GetFirstCorner(direction) * solidFactor;
     }
 
+    /// <summary>
+    /// 得到下个方向所对应的位置*混合度
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public static Vector3 GetSecondSolidCorner(HexDirection direction)
     {
-        return corners[(int)direction + 1] * solidFactor;
+        return GetSecondCorner(direction) * solidFactor;
     }
 
+    /// <summary>
+    /// 得到两个方向的中心点
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public static Vector3 GetSolidEdgeMiddle(HexDirection direction)
     {
         return (corners[(int)direction] + corners[(int)direction + 1])
             * (0.5f * solidFactor);
     }
 
+    /// <summary>
+    /// 得到桥的offset
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public static Vector3 GetBridge(HexDirection direction)
     {
         return (corners[(int)direction] + corners[(int)direction + 1])
                 * blendFactor;
     }
 
+    /// <summary>
+    /// 顶点的梯度lerp
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="step"></param>
+    /// <returns></returns>
     public static Vector3 TerraceLerp(Vector3 a, Vector3 b, int step)
     {
         float h = step * horizontalTerraceStepSize;
@@ -150,12 +190,25 @@ public sealed class HexMetrics
         return a;
     }
 
+    /// <summary>
+    /// 颜色的梯度lerp
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="step"></param>
+    /// <returns></returns>
     public static Color TerraceLerp(Color a, Color b, int step)
     {
         float h = step * horizontalTerraceStepSize;
         return Color.Lerp(a, b, h);
     }
 
+    /// <summary>
+    /// 根据高度,判断两个cell,之间的关系
+    /// </summary>
+    /// <param name="elevation1"></param>
+    /// <param name="elevation2"></param>
+    /// <returns></returns>
     public static HexEdgeType GetEdgeType(int elevation1, int elevation2)
     {
         if (elevation1 == elevation2)
@@ -171,11 +224,21 @@ public sealed class HexMetrics
         return HexEdgeType.Cliff;
     }
 
+    /// <summary>
+    /// 得到噪音的某个point
+    /// </summary>
+    /// <param name="position"></param>
+    /// <returns></returns>
     public static Vector4 SampleNoise(Vector3 position)
     {
         return noiseSource.GetPixelBilinear(position.x * noiseScale, position.y * noiseScale);
     }
 
+    /// <summary>
+    /// 地形的顶点的噪音偏移
+    /// </summary>
+    /// <param name="position"></param>
+    /// <returns></returns>
     public static Vector3 Perturb(Vector3 position)
     {
         Vector4 sample = SampleNoise(position);

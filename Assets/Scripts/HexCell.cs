@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 地形的单个
+/// 地形的最小块
 /// </summary>
 public class HexCell : MonoBehaviour
 {

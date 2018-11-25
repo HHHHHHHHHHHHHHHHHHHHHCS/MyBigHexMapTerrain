@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 地型块,由cell组成
+/// 有uilabel 显示  和mesh
+/// </summary>
 public class HexGridChunk : MonoBehaviour
 {
     public Canvas gridCanvas;
@@ -21,7 +25,11 @@ public class HexGridChunk : MonoBehaviour
         enabled = false;
     }
 
-
+    /// <summary>
+    /// 添加细胞
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="cell"></param>
     public void AddCell(int index, HexCell cell)
     {
         cells[index] = cell;
@@ -30,16 +38,27 @@ public class HexGridChunk : MonoBehaviour
         cell.uiRect.SetParent(gridCanvas.transform, false);
     }
 
+    /// <summary>
+    /// 显示uilabel
+    /// </summary>
+    /// <param name="visible"></param>
     public void ShowUI(bool visible)
     {
         gridCanvas.gameObject.SetActive(visible);
     }
 
+    /// <summary>
+    /// 刷新地形
+    /// </summary>
     public void Refresh()
     {
         enabled = true;
     }
 
+
+    /// <summary>
+    /// 总方法 生成地形
+    /// </summary>
     public void Triangulate()
     {
         terrain.Clear();
@@ -208,8 +227,8 @@ public class HexGridChunk : MonoBehaviour
         TriangulateEdgeStrip(m, cell.Color, e, cell.Color);
 
         bool reversed = cell.IncomingRiver == direction;
-        TriangulateRiverQuad(centerL, centerR, m.v2, m.v4, cell.RiverSurfaceY,0.4f, reversed);
-        TriangulateRiverQuad(m.v2, m.v4, e.v2, e.v4, cell.RiverSurfaceY,0.6f, reversed);
+        TriangulateRiverQuad(centerL, centerR, m.v2, m.v4, cell.RiverSurfaceY, 0.4f, reversed);
+        TriangulateRiverQuad(m.v2, m.v4, e.v2, e.v4, cell.RiverSurfaceY, 0.6f, reversed);
     }
 
     /// <summary>
@@ -233,7 +252,7 @@ public class HexGridChunk : MonoBehaviour
 
         bool reversed = cell.HasIncomingRiver;
         TriangulateRiverQuad(m.v2, m.v4, e.v2, e.v4
-            , cell.RiverSurfaceY,0.6f, reversed);
+            , cell.RiverSurfaceY, 0.6f, reversed);
         center.y = m.v2.y = m.v4.y = cell.RiverSurfaceY;
         rivers.AddTriangle(center, m.v2, m.v4);
         if (reversed)
@@ -308,7 +327,7 @@ public class HexGridChunk : MonoBehaviour
             e2.v3.y = neighbor.StreamBedY;
             TriangulateRiverQuad(
                 e1.v2, e1.v4, e2.v2, e2.v4
-                , cell.RiverSurfaceY, neighbor.RiverSurfaceY,0.8f
+                , cell.RiverSurfaceY, neighbor.RiverSurfaceY, 0.8f
                 , cell.HasIncomingRiver && cell.IncomingRiver == direction);
         }
 
@@ -602,10 +621,10 @@ public class HexGridChunk : MonoBehaviour
     /// <param name="v3"></param>
     /// <param name="v4"></param>
     /// <param name="y"></param>
-    private void TriangulateRiverQuad(Vector3 v1,Vector3 v2
-        ,Vector3 v3,Vector3 v4,float y,float v ,bool reversed)
+    private void TriangulateRiverQuad(Vector3 v1, Vector3 v2
+        , Vector3 v3, Vector3 v4, float y, float v, bool reversed)
     {
-        TriangulateRiverQuad(v1, v2, v3, v4, y, y,v, reversed);
+        TriangulateRiverQuad(v1, v2, v3, v4, y, y, v, reversed);
     }
 
 
@@ -620,14 +639,14 @@ public class HexGridChunk : MonoBehaviour
     /// <param name="y2"></param>
     /// <param name="reversed"></param>
     private void TriangulateRiverQuad(Vector3 v1, Vector3 v2
-        , Vector3 v3, Vector3 v4, float y1,float y2,float v,bool reversed)
+        , Vector3 v3, Vector3 v4, float y1, float y2, float v, bool reversed)
     {
         v1.y = v2.y = y1;
         v3.y = v4.y = y2;
         rivers.AddQuad(v1, v2, v3, v4);
-        if(reversed)
+        if (reversed)
         {
-            rivers.AddQuadUV(1f, 0f, 0.8f-v,0.6f-v);
+            rivers.AddQuadUV(1f, 0f, 0.8f - v, 0.6f - v);
         }
         else
         {
