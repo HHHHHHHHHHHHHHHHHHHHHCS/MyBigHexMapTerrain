@@ -63,17 +63,17 @@ public sealed class HexMetrics
     public const float verticalTerraceStepSize = 1f / (terracesPerSlope + 1);
 
     /// <summary>
-    /// 噪音 地形凹凸的强度
+    /// 噪音 地形的左右偏移
     /// </summary>
-    public const float cellPerturbStrength = 0f;
+    public const float cellPerturbStrength = 4f;
 
     /// <summary>
-    /// 噪音 噪音的跨度
+    /// 噪音 噪音的缩放
     /// </summary>
     public const float noiseScale = 0.003f;
 
     /// <summary>
-    /// 小地形块的强度
+    /// 噪音 小地形块的高度强度
     /// </summary>
     public const float elevationPerturbStrength = 1.5f;
 
@@ -85,7 +85,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 河底的凹陷程度 单位格  最后要乘以step
     /// </summary>
-    public const float streamBedElevationOffset = -1f;
+    public const float streamBedElevationOffset = -1.75f;
 
     /// <summary>
     /// 河表面的凹陷程度 单位格  最后要乘以step
