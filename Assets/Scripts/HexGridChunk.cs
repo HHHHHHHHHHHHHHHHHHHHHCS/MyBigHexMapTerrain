@@ -306,7 +306,11 @@ public class HexGridChunk : MonoBehaviour
     private void TrriangulateAdjacentToRiver(HexDirection direction
         , HexCell cell, Vector3 center, EdgeVertices e)
     {
-        if (cell.HasRiverThroughEdge(direction.Next()))
+        if(cell.HasRoads)
+        {
+            TriangulateRoadAdjacentToRiver(direction, cell, center, e);
+        }
+        else if (cell.HasRiverThroughEdge(direction.Next()))
         {
             if (cell.HasRiverThroughEdge(direction.Previous()))
             {
@@ -745,7 +749,7 @@ public class HexGridChunk : MonoBehaviour
     }
 
     /// <summary>
-    /// 得到路的 线的百分比
+    /// 得到路到顶点的百分比,最后生成道路的轮廓什么的
     /// </summary>
     /// <param name="direction"></param>
     /// <param name="cell"></param>
@@ -767,5 +771,34 @@ public class HexGridChunk : MonoBehaviour
         }
 
         return interpolators;
+    }
+
+    /// <summary>
+    /// 生成三角面片,在路和河同时存在是用
+    /// </summary>
+    private void TriangulateRoadAdjacentToRiver(
+        HexDirection direction,HexCell cell,Vector3 center,EdgeVertices e)
+    {
+        bool hasRoadThroughEdge = cell.HasRoadThroughEdge(direction);
+        Vector2 interpolators = GetRoadInterpolators(direction, cell);
+        Vector3 roadCenter = center;
+
+        if(cell.HasRiverBeginOrEnd)
+        {
+            roadCenter += (1f / 3f) * HexMetrics.GetSolidEdgeMiddle(
+                cell.RiverBeginOrEndDirection.Opposite());
+        }
+
+        Vector3 mL = Vector3.Lerp(roadCenter, e.v1, interpolators.x);
+        Vector3 mR = Vector3.Lerp(roadCenter, e.v5, interpolators.y);
+        TriangulateRoad(roadCenter, mL, mR, e, hasRoadThroughEdge);
+        if(cell.HasRiverThroughEdge(direction.Previous()))
+        {
+            TriangulateRoadEdge(roadCenter, center, mL);
+        }
+        if(cell.HasRiverThroughEdge(direction.Next()))
+        {
+            TriangulateRoadEdge(roadCenter, mR, center);
+        }
     }
 }

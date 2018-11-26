@@ -65,7 +65,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 噪音 地形的左右偏移
     /// </summary>
-    public const float cellPerturbStrength = 4f;
+    public const float cellPerturbStrength = 0;//4f;
 
     /// <summary>
     /// 噪音 噪音的缩放
@@ -75,7 +75,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 噪音 小地形块的高度强度
     /// </summary>
-    public const float elevationPerturbStrength = 1.5f;
+    public const float elevationPerturbStrength = 0;//1.5f;
 
     /// <summary>
     /// 地形小块的尺寸

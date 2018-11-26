@@ -130,6 +130,14 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    public HexDirection RiverBeginOrEndDirection
+    {
+        get
+        {
+            return HasIncomingRiver ? incomingRiver : outgoingRiver;
+        }
+    }
+
     public HexCell GetNeighbor(HexDirection direction)
     {
         return neighbors[(int)direction];
