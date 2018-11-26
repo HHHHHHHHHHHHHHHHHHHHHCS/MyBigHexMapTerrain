@@ -93,6 +93,11 @@ public sealed class HexMetrics
     public const float riverSurfaceElevationOffset = -0.5f;
 
     /// <summary>
+    /// 道路高度差,大于这个就不能有道路了
+    /// </summary>
+    public const int roadDifferceHeight = 1;
+
+    /// <summary>
     /// 地形的噪音图
     /// </summary>
     public static Texture2D noiseSource;

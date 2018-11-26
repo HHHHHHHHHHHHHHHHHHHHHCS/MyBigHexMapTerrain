@@ -12,6 +12,8 @@ public class HexCell : MonoBehaviour
     public RectTransform uiRect;
     public HexGridChunk chunk;
 
+    [SerializeField] private bool[] roads = new bool[6];
+
     private Color color = new Color(0, 0, 0, 0);
     private HexCell[] neighbors = new HexCell[6];
     private int elevation = int.MinValue;
@@ -56,6 +58,14 @@ public class HexCell : MonoBehaviour
             if (HasIncomingRiver && Elevation > GetNeighbor(IncomingRiver).Elevation)
             {
                 RemoveIncomingRiver();
+            }
+
+            for (int i = 0; i < roads.Length; i++)
+            {
+                if (roads[i] && GetElevationDifference((HexDirection)i) > HexMetrics.roadDifferceHeight)
+                {
+                    SetRoad(i, false);
+                }
             }
 
             Refresh();
@@ -106,6 +116,20 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    public bool HasRoads
+    {
+        get
+        {
+            for (int i = 0; i < roads.Length; i++)
+            {
+                if (roads[i])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     public HexCell GetNeighbor(HexDirection direction)
     {
@@ -127,6 +151,12 @@ public class HexCell : MonoBehaviour
     public HexEdgeType GetEdgeType(HexCell otherCell)
     {
         return HexMetrics.GetEdgeType(elevation, otherCell.elevation);
+    }
+
+    public int GetElevationDifference(HexDirection direction)
+    {
+        int difference = Elevation - GetNeighbor(direction).Elevation;
+        return difference >= 0 ? difference : -difference;
     }
 
     private void Refresh()
@@ -157,6 +187,42 @@ public class HexCell : MonoBehaviour
             || HasOutgoingRiver && OutgoingRiver == direction;
     }
 
+    public bool HasRoadThrougEdge(HexDirection direction)
+    {
+        return roads[(int)direction];
+    }
+
+    public void AddRoad(HexDirection direction)
+    {
+        if (!roads[(int)direction] && !HasRiverThroughEdge(direction)
+            && GetElevationDifference(direction) <= HexMetrics.roadDifferceHeight)
+        {
+            SetRoad((int)direction, true);
+        }
+    }
+
+    private void SetRoad(int index, bool state)
+    {
+        roads[index] = state;
+        neighbors[index].roads[(int)(((HexDirection)index).Opposite())] = state;
+        neighbors[index].RefreshSelfOnly();
+        RefreshSelfOnly();
+    }
+
+    public void RemoveRoads()
+    {
+        for (int i = 0; i < neighbors.Length; i++)
+        {
+            if (roads[i])
+            {
+                roads[i] = false;
+                neighbors[i].roads[(int)(((HexDirection)i).Opposite())] = false;
+                neighbors[i].RefreshSelfOnly();
+                RefreshSelfOnly();
+            }
+        }
+    }
+
     public void RemoveOutgoingRiver()
     {
         if (!HasOutgoingRiver)
@@ -173,7 +239,7 @@ public class HexCell : MonoBehaviour
 
     public void RemoveIncomingRiver()
     {
-        if(!HasIncomingRiver)
+        if (!HasIncomingRiver)
         {
             return;
         }
@@ -194,30 +260,30 @@ public class HexCell : MonoBehaviour
 
     public void SetOutgoingRiver(HexDirection direction)
     {
-        if(HasOutgoingRiver&&OutgoingRiver==direction)
+        if (HasOutgoingRiver && OutgoingRiver == direction)
         {
             return;
         }
 
         HexCell neighbor = GetNeighbor(direction);
-        if(!neighbor||Elevation<neighbor.Elevation)
+        if (!neighbor || Elevation < neighbor.Elevation)
         {
             return;
         }
 
         RemoveOutgoingRiver();
-        if(HasIncomingRiver&&IncomingRiver==direction)
+        if (HasIncomingRiver && IncomingRiver == direction)
         {
             RemoveIncomingRiver();
         }
 
         HasOutgoingRiver = true;
         OutgoingRiver = direction;
-        RefreshSelfOnly();
 
         neighbor.RemoveIncomingRiver();
         neighbor.HasIncomingRiver = true;
         neighbor.IncomingRiver = direction.Opposite();
-        neighbor.RefreshSelfOnly();
+
+        SetRoad((int)direction, false);
     }
 }
