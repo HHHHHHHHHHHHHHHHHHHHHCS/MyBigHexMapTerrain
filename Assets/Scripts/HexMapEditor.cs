@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -16,12 +17,6 @@ public class HexMapEditor : MonoBehaviour
 
     public Color[] colors;
 
-
-    private ToggleGroup colorToggleGroup;
-    private Toggle[] colorToggles;
-    private ToggleGroup riverToggleGroup;
-    private Toggle[] riverToggles;
-
     private HexGrid hexGrid;
     private Camera mainCam;
 
@@ -31,6 +26,7 @@ public class HexMapEditor : MonoBehaviour
     private bool applyColor;
     private bool applyElevation = true;
     private OptionalToggle riverMode = OptionalToggle.Ignore;
+    private OptionalToggle roadMode = OptionalToggle.Ignore;
 
     private bool isDrag;
     private HexDirection dragDirection;
@@ -40,33 +36,27 @@ public class HexMapEditor : MonoBehaviour
     {
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
+
         Transform root = transform.Find("Bg");
-        colorToggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
-        colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
+        var colorToggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
+        var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var elevationToggle = root.Find("Toggle_Elevation").GetComponent<Toggle>();
         var elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
         var brushSlider = root.Find("Slider_BrustSize").GetComponent<Slider>();
         var labelsToggle = root.Find("Toggle_Labels").GetComponent<Toggle>();
-        riverToggleGroup = root.Find("ToggleGroup_River").GetComponent<ToggleGroup>();
-        riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
-
+        var riverToggleGroup = root.Find("ToggleGroup_River").GetComponent<ToggleGroup>();
+        var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
+        var roadToggleGroup = root.Find("ToggleGroup_Road").GetComponent<ToggleGroup>();
+        var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
 
         elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
         elevationSlider.onValueChanged.AddListener(SetElevation);
         brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
         labelsToggle.onValueChanged.AddListener(ShowUI);
-        ResetColor();
-        for (int i = 0; i < colorToggles.Length; i++)
-        {
-            int temp = i;
-            colorToggles[i].onValueChanged.AddListener(bo => ChangeColorToggle(bo, temp));
-        }
-        ResetRiver();
-        for (int i = 0; i < riverToggles.Length; i++)
-        {
-            int temp = i;
-            riverToggles[i].onValueChanged.AddListener(bo => ChangeRiverToggle(bo, temp));
-        }
+
+        InitToggles(colorToggles,SetColor);
+        InitToggles(riverToggles,SetRiverMode);
+        InitToggles(roadToggles, SetRoadMode);
     }
 
     private void Update()
@@ -142,14 +132,24 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.RemoveRiver();
             }
-            else if (isDrag && riverMode == OptionalToggle.Yes)
+            if(roadMode==OptionalToggle.No)
+            {
+                cell.RemoveRoads();
+            }
+            if (isDrag )
             {
                 HexCell otherCell = cell.GetNeighbor(dragDirection.Opposite());
                 if (otherCell)
                 {
-                    previousCell.SetOutgoingRiver(dragDirection);
+                    if(riverMode==OptionalToggle.Yes)
+                    {
+                        previousCell.SetOutgoingRiver(dragDirection);
+                    }
+                    if(roadMode==OptionalToggle.Yes)
+                    {
+                        otherCell.AddRoad(dragDirection);
+                    }
                 }
-
             }
         }
     }
@@ -159,17 +159,26 @@ public class HexMapEditor : MonoBehaviour
         activeElevation = (int)elevation;
     }
 
-    public void ResetColor()
+    public void InitToggles(Toggle[] toogles, Action<int> clickAction)
     {
-        foreach (var item in colorToggles)
+        for (int i = 0; i < toogles.Length; i++)
         {
-            item.isOn = false;
+            int temp = i;
+            toogles[i].isOn = false;
+            toogles[i].onValueChanged.AddListener(bo =>
+            {
+                if (bo)
+                {
+                    clickAction(temp);
+                }
+            });
         }
-        colorToggles[0].isOn = true;
-        SelectColor(0);
+
+        toogles[0].isOn = true;
+        clickAction(0);
     }
 
-    public void SelectColor(int index)
+    public void SetColor(int index)
     {
         applyColor = index > 0;
         if (!applyColor)
@@ -188,35 +197,14 @@ public class HexMapEditor : MonoBehaviour
         }
     }
 
-    private void ChangeColorToggle(bool bo, int index)
-    {
-        if (bo)
-        {
-            SelectColor(index);
-        }
-    }
-
-    private void ResetRiver()
-    {
-        foreach (var item in riverToggles)
-        {
-            item.isOn = false;
-        }
-        riverToggles[0].isOn = true;
-        SetRiverMode(0);
-    }
-
     public void SetRiverMode(int mode)
     {
         riverMode = (OptionalToggle)mode;
     }
 
-    private void ChangeRiverToggle(bool bo, int index)
+    public void SetRoadMode(int mode)
     {
-        if (bo)
-        {
-            SetRiverMode(index);
-        }
+        roadMode = (OptionalToggle)mode;
     }
 
     private void ValidateDrag(HexCell currentCell)

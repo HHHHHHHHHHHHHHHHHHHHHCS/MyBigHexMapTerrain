@@ -14,7 +14,6 @@ public class HexGrid : MonoBehaviour
     public HexGridChunk chunkPrefab;
     public Text cellLabelPrefab;
     public Color defaultColor = Color.white;
-    //public Color touchedColor = Color.red;
     public Texture2D noiseSource;
 
     private HexCell[] cells;

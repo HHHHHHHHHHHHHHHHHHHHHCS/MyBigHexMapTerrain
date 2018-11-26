@@ -12,13 +12,12 @@ public class HexCell : MonoBehaviour
     public RectTransform uiRect;
     public HexGridChunk chunk;
 
-    [SerializeField] private bool[] roads = new bool[6];
-
     private Color color = new Color(0, 0, 0, 0);
     private HexCell[] neighbors = new HexCell[6];
     private int elevation = int.MinValue;
     private bool hasIncomingRiver, hasOutgoingRiver;
     private HexDirection incomingRiver, outgoingRiver;
+    private bool[] roads = new bool[6];
 
     public bool HasIncomingRiver { get => hasIncomingRiver; private set => hasIncomingRiver = value; }
     public bool HasOutgoingRiver { get => hasOutgoingRiver; private set => hasOutgoingRiver = value; }
@@ -187,7 +186,7 @@ public class HexCell : MonoBehaviour
             || HasOutgoingRiver && OutgoingRiver == direction;
     }
 
-    public bool HasRoadThrougEdge(HexDirection direction)
+    public bool HasRoadThroughEdge(HexDirection direction)
     {
         return roads[(int)direction];
     }
