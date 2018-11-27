@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 /// <summary>
@@ -23,7 +24,7 @@ public enum HexEdgeType
 /// </summary>
 public struct EdgeVertices
 {
-    public Vector3 v1, v2, v3,v4, v5;
+    public Vector3 v1, v2, v3, v4, v5;
 
     public EdgeVertices(Vector3 corner1, Vector3 corner2)
     {
@@ -34,7 +35,7 @@ public struct EdgeVertices
         v5 = corner2;
     }
 
-    public EdgeVertices(Vector3 corner1,Vector3 corner2,float outerStep)
+    public EdgeVertices(Vector3 corner1, Vector3 corner2, float outerStep)
     {
         v1 = corner1;
         v2 = Vector3.Lerp(corner1, corner2, outerStep);
@@ -89,3 +90,28 @@ public static class HexDirectionExtensions
     }
 }
 
+/// <summary>
+/// 扩充unity 一些方法方便测试
+/// </summary>
+public static class MyUnity
+{
+    private static StringBuilder sb;
+    private const string spiltStr = "___";
+
+    public static void Log(params object[] objArr)
+    {
+        if (sb == null)
+        {
+            sb = new StringBuilder();
+        }
+
+        foreach (var item in objArr)
+        {
+            sb.Append(item.ToString());
+            sb.Append(spiltStr);
+        }
+
+        Debug.Log(sb);
+        sb.Clear();
+    }
+}

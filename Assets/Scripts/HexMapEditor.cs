@@ -19,6 +19,7 @@ public class HexMapEditor : MonoBehaviour
 
     private HexGrid hexGrid;
     private Camera mainCam;
+    private Transform root;
 
     private Color activeColor;
     private int activeElevation;
@@ -39,30 +40,38 @@ public class HexMapEditor : MonoBehaviour
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
 
-        Transform root = transform.Find("Bg");
-        var colorToggleGroup = root.Find("ToggleGroup_Color").GetComponent<ToggleGroup>();
+        root = transform.Find("Bg");
+
+        FindComponent(out ToggleGroup colorToggleGroup, "ToggleGroup_Color");
+        FindComponent(out Toggle elevationToggle, "Toggle_Elevation");
+        FindComponent(out Slider elevationSlider, "Slider_Elevation");
+        FindComponent(out Toggle waterToggle, "Toggle_Water");
+        FindComponent(out Slider waterSlider, "Slider_Water");
+        FindComponent(out Slider brushSlider, "Slider_BrustSize");
+        FindComponent(out Toggle labelsToggle, "Toggle_Labels");
+        FindComponent(out ToggleGroup riverToggleGroup, "ToggleGroup_River");
+        FindComponent(out ToggleGroup roadToggleGroup, "ToggleGroup_Road");
+
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
-        var elevationToggle = root.Find("Toggle_Elevation").GetComponent<Toggle>();
-        var elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
-        var waterToggle = root.Find("Toggle_Water").GetComponent<Toggle>();
-        var waterSlider = root.Find("Slider_Water").GetComponent<Slider>();
-        var brushSlider = root.Find("Slider_BrustSize").GetComponent<Slider>();
-        var labelsToggle = root.Find("Toggle_Labels").GetComponent<Toggle>();
-        var riverToggleGroup = root.Find("ToggleGroup_River").GetComponent<ToggleGroup>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
-        var roadToggleGroup = root.Find("ToggleGroup_Road").GetComponent<ToggleGroup>();
         var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
 
         elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
-        elevationSlider.onValueChanged.AddListener(val=> activeElevation=(int)val);
-        waterToggle.onValueChanged.AddListener(bo => applyWaterLevel=bo);
-        elevationSlider.onValueChanged.AddListener(val => activeWaterLevel = (int)val);
+        elevationSlider.onValueChanged.AddListener(val => activeElevation = (int)val);
+        waterToggle.onValueChanged.AddListener(bo => applyWaterLevel = bo);
+        waterSlider.onValueChanged.AddListener(val => activeWaterLevel = (int)val);
         brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
         labelsToggle.onValueChanged.AddListener(ShowUI);
 
-        InitToggles(colorToggles,SetColor);
-        InitToggles(riverToggles,SetRiverMode);
+        InitToggles(colorToggles, SetColor);
+        InitToggles(riverToggles, SetRiverMode);
         InitToggles(roadToggles, SetRoadMode);
+    }
+
+    private void FindComponent<T>(out T obj, string path, Transform parent = null)
+    {
+        parent = parent ?? root;
+        obj = parent.Find(path).GetComponent<T>();
     }
 
     private void Update()
@@ -134,7 +143,7 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.Elevation = activeElevation;
             }
-            if(applyWaterLevel)
+            if (applyWaterLevel)
             {
                 cell.WaterLevel = activeWaterLevel;
             }
@@ -142,20 +151,20 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.RemoveRiver();
             }
-            if(roadMode==OptionalToggle.No)
+            if (roadMode == OptionalToggle.No)
             {
                 cell.RemoveRoads();
             }
-            if (isDrag )
+            if (isDrag)
             {
                 HexCell otherCell = cell.GetNeighbor(dragDirection.Opposite());
                 if (otherCell)
                 {
-                    if(riverMode==OptionalToggle.Yes)
+                    if (riverMode == OptionalToggle.Yes)
                     {
                         previousCell.SetOutgoingRiver(dragDirection);
                     }
-                    if(roadMode==OptionalToggle.Yes)
+                    if (roadMode == OptionalToggle.Yes)
                     {
                         otherCell.AddRoad(dragDirection);
                     }
