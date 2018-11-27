@@ -18,6 +18,7 @@ public class HexCell : MonoBehaviour
     private bool hasIncomingRiver, hasOutgoingRiver;
     private HexDirection incomingRiver, outgoingRiver;
     private bool[] roads = new bool[6];
+    private int waterLevel;
 
     public bool HasIncomingRiver { get => hasIncomingRiver; private set => hasIncomingRiver = value; }
     public bool HasOutgoingRiver { get => hasOutgoingRiver; private set => hasOutgoingRiver = value; }
@@ -110,7 +111,7 @@ public class HexCell : MonoBehaviour
     {
         get
         {
-            return (elevation + HexMetrics.riverSurfaceElevationOffset)
+            return (elevation + HexMetrics.waterElevationOffset)
                 * HexMetrics.elevationStep;
         }
     }
@@ -137,6 +138,41 @@ public class HexCell : MonoBehaviour
             return HasIncomingRiver ? incomingRiver : outgoingRiver;
         }
     }
+
+    public int WaterLevel
+    {
+        get
+        {
+            return waterLevel;
+        }
+        set
+        {
+            if(waterLevel==value)
+            {
+                return;
+            }
+            waterLevel = value;
+            Refresh();
+        }
+    }
+
+    public bool IsUnderwater
+    {
+        get
+        {
+            return waterLevel > elevation;
+        }
+    }
+
+    public float WaterSurfaceY
+    {
+        get
+        {
+            return (waterLevel + HexMetrics.waterElevationOffset)
+                * HexMetrics.elevationStep;
+        }
+    }
+
 
     public HexCell GetNeighbor(HexDirection direction)
     {

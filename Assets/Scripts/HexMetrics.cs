@@ -88,9 +88,9 @@ public sealed class HexMetrics
     public const float streamBedElevationOffset = -1.75f;
 
     /// <summary>
-    /// 河表面的凹陷程度 单位格  最后要乘以step
+    /// 水表面的凹陷程度 单位格  最后要乘以step
     /// </summary>
-    public const float riverSurfaceElevationOffset = -0.5f;
+    public const float waterElevationOffset = -0.5f;
 
     /// <summary>
     /// 道路高度差,大于这个就不能有道路了

@@ -22,9 +22,11 @@ public class HexMapEditor : MonoBehaviour
 
     private Color activeColor;
     private int activeElevation;
+    private int activeWaterLevel;
     private int brushSize;
     private bool applyColor;
     private bool applyElevation = true;
+    private bool applyWaterLevel = true;
     private OptionalToggle riverMode = OptionalToggle.Ignore;
     private OptionalToggle roadMode = OptionalToggle.Ignore;
 
@@ -42,6 +44,8 @@ public class HexMapEditor : MonoBehaviour
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var elevationToggle = root.Find("Toggle_Elevation").GetComponent<Toggle>();
         var elevationSlider = root.Find("Slider_Elevation").GetComponent<Slider>();
+        var waterToggle = root.Find("Toggle_Water").GetComponent<Toggle>();
+        var waterSlider = root.Find("Slider_Water").GetComponent<Slider>();
         var brushSlider = root.Find("Slider_BrustSize").GetComponent<Slider>();
         var labelsToggle = root.Find("Toggle_Labels").GetComponent<Toggle>();
         var riverToggleGroup = root.Find("ToggleGroup_River").GetComponent<ToggleGroup>();
@@ -50,7 +54,9 @@ public class HexMapEditor : MonoBehaviour
         var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
 
         elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
-        elevationSlider.onValueChanged.AddListener(SetElevation);
+        elevationSlider.onValueChanged.AddListener(val=> activeElevation=(int)val);
+        waterToggle.onValueChanged.AddListener(bo => applyWaterLevel=bo);
+        elevationSlider.onValueChanged.AddListener(val => activeWaterLevel = (int)val);
         brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
         labelsToggle.onValueChanged.AddListener(ShowUI);
 
@@ -128,6 +134,10 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.Elevation = activeElevation;
             }
+            if(applyWaterLevel)
+            {
+                cell.WaterLevel = activeWaterLevel;
+            }
             if (riverMode == OptionalToggle.No)
             {
                 cell.RemoveRiver();
@@ -152,11 +162,6 @@ public class HexMapEditor : MonoBehaviour
                 }
             }
         }
-    }
-
-    public void SetElevation(float elevation)
-    {
-        activeElevation = (int)elevation;
     }
 
     public void InitToggles(Toggle[] toogles, Action<int> clickAction)
