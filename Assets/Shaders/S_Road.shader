@@ -18,14 +18,13 @@
 		#pragma surface surf Standard alpha decal:blend
 		#pragma target 3.0
 		
-		sampler2D _MainTex;
-		
 		struct Input
 		{
 			float2 uv_MainTex;
 			float3 worldPos;
 		};
 		
+		sampler2D _MainTex;
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;

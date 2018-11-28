@@ -17,14 +17,13 @@
 		#pragma surface surf Standard fullforwardshadows
 		#pragma target 3.0
 		
-		sampler2D _MainTex;
-		
 		struct Input
 		{
 			float2 uv_MainTex;
 			float4 color: COLOR;
 		};
 		
+		sampler2D _MainTex;
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;

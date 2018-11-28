@@ -10,7 +10,7 @@ using UnityEngine;
 public class HexGridChunk : MonoBehaviour
 {
     public Canvas gridCanvas;
-    public HexMesh terrain, rivers, roads, water;
+    public HexMesh terrain, rivers, roads, water, waterShore;
 
     private HexCell[] cells;
 
@@ -66,6 +66,7 @@ public class HexGridChunk : MonoBehaviour
         rivers.Clear();
         roads.Clear();
         water.Clear();
+        waterShore.Clear();
         for (int i = 0; i < cells.Length; i++)
         {
             Triangulate(cells[i]);
@@ -74,10 +75,11 @@ public class HexGridChunk : MonoBehaviour
         rivers.Apply();
         roads.Apply();
         water.Apply();
+        waterShore.Apply();
     }
 
     /// <summary>
-    /// 生成某个cell
+    /// 生成某个cell,六个方向
     /// </summary>
     /// <param name="cell"></param>
     private void Triangulate(HexCell cell)
@@ -887,6 +889,29 @@ public class HexGridChunk : MonoBehaviour
     private void TriangulateWater(HexDirection direction, HexCell cell, Vector3 center)
     {
         center.y = cell.WaterSurfaceY;
+
+        HexCell neighbor = cell.GetNeighbor(direction);
+        if (neighbor != null && !neighbor.IsUnderwater)
+        {
+            TriangulateWaterShore(direction, cell, neighbor, center);
+        }
+        else
+        {
+            TriangulateOpenWater(direction, cell, neighbor, center);
+        }
+    }
+
+
+    /// <summary>
+    /// 计算岸无边缘(扇形)
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <param name="cell"></param>
+    /// <param name="neighbor"></param>
+    /// <param name="center"></param>
+    private void TriangulateOpenWater(HexDirection direction
+        , HexCell cell, HexCell neighbor, Vector3 center)
+    {
         Vector3 c1 = center + HexMetrics.GetFirstSolidCorner(direction);
         Vector3 c2 = center + HexMetrics.GetSecondSolidCorner(direction);
 
@@ -894,11 +919,6 @@ public class HexGridChunk : MonoBehaviour
 
         if (direction <= HexDirection.SE)
         {
-            HexCell neighbor = cell.GetNeighbor(direction);
-            if (neighbor == null || !neighbor.IsUnderwater)
-            {
-                return;
-            }
 
             Vector3 bridge = HexMetrics.GetBridge(direction);
             Vector3 e1 = c1 + bridge;
@@ -914,6 +934,47 @@ public class HexGridChunk : MonoBehaviour
                 }
                 water.AddTriangle(c2, e2, c2 + HexMetrics.GetBridge(direction.Next()));
             }
+        }
+    }
+
+    /// <summary>
+    /// 计算有边缘的(扇形)
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <param name="cell"></param>
+    /// <param name="neighbor"></param>
+    /// <param name="center"></param>
+    private void TriangulateWaterShore(HexDirection direction
+        , HexCell cell, HexCell neighbor, Vector3 center)
+    {
+        EdgeVertices e1 = new EdgeVertices(
+            center + HexMetrics.GetFirstSolidCorner(direction)
+            , center + HexMetrics.GetSecondSolidCorner(direction));
+
+        water.AddTriangle(center, e1.v1, e1.v2);
+        water.AddTriangle(center, e1.v2, e1.v3);
+        water.AddTriangle(center, e1.v3, e1.v4);
+        water.AddTriangle(center, e1.v4, e1.v5);
+
+        Vector3 bridge = HexMetrics.GetBridge(direction);
+        EdgeVertices e2 = new EdgeVertices(
+            e1.v1 + bridge, e1.v5 + bridge);
+        waterShore.AddQuad(e1.v1, e1.v2, e2.v1, e2.v2);
+        waterShore.AddQuad(e1.v2, e1.v3, e2.v2, e2.v3);
+        waterShore.AddQuad(e1.v3, e1.v4, e2.v3, e2.v4);
+        waterShore.AddQuad(e1.v4, e1.v5, e2.v4, e2.v5);
+        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+
+        HexCell nextNeighbor = cell.GetNeighbor(direction.Next());
+        if (nextNeighbor != null)
+        {
+            waterShore.AddTriangle(e1.v5, e2.v5
+                , e1.v5 + HexMetrics.GetBridge(direction.Next()));
+            waterShore.AddTriangleUV(new Vector2(0, 0), new Vector2(0, 1)
+                , new Vector2(0, nextNeighbor.IsUnderwater ? 0f : 1f));
         }
     }
 }
