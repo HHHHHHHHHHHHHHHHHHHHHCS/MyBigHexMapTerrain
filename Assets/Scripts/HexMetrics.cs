@@ -98,6 +98,16 @@ public sealed class HexMetrics
     public const int roadDifferceHeight = 1;
 
     /// <summary>
+    /// 水的混合度
+    /// </summary>
+    public const float waterFacctor = 0.6f;
+
+    /// <summary>
+    /// 1-水的混合度
+    /// </summary>
+    public const float waterBlendFactor = 1 - waterFacctor;
+
+    /// <summary>
     /// 地形的噪音图
     /// </summary>
     public static Texture2D noiseSource;
@@ -251,5 +261,37 @@ public sealed class HexMetrics
         //position.y += (sample.y * 2f - 1f) * HexMetrics.cellPerturbStrength;
         position.z += (sample.z * 2f - 1f) * cellPerturbStrength;
         return position;
+    }
+
+    /// <summary>
+    /// 得到方向所对应的位置 * 水的混合度
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public static Vector3 GetFirstWaterCorner(HexDirection direction)
+    {
+        return GetFirstCorner(direction) * waterFacctor;
+    }
+
+
+    /// <summary>
+    /// 得到下一个方向所对应的位置 * 水的混合度
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public static Vector3 GetSecondWaterCorner(HexDirection direction)
+    {
+        return GetSecondCorner(direction) * waterFacctor;
+    }
+
+    /// <summary>
+    /// 得到水的桥的offset
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public static Vector3 GetWaterBridge(HexDirection direction)
+    {
+        return (GetFirstCorner(direction) + GetSecondCorner(direction))
+            * waterBlendFactor;
     }
 }
