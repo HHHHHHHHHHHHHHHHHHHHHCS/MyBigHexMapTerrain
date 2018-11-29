@@ -153,11 +153,29 @@ public class HexMesh : MonoBehaviour
     /// <param name="v4"></param>
     public void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
     {
+        v1 = HexMetrics.Perturb(v1);
+        v2 = HexMetrics.Perturb(v2);
+        v3 = HexMetrics.Perturb(v3);
+        v4 = HexMetrics.Perturb(v4);
+        AddQuadUnperturbed(v1, v2, v3, v4);
+    }
+
+
+    /// <summary>
+    /// 添加四边形面片(无噪音)
+    /// </summary>
+    /// <param name="v1"></param>
+    /// <param name="v2"></param>
+    /// <param name="v3"></param>
+    /// <param name="v4"></param>
+    public void AddQuadUnperturbed(
+        Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
+    {
         int vertexIndex = vertices.Count;
-        vertices.Add(HexMetrics.Perturb(v1));
-        vertices.Add(HexMetrics.Perturb(v2));
-        vertices.Add(HexMetrics.Perturb(v3));
-        vertices.Add(HexMetrics.Perturb(v4));
+        vertices.Add(v1);
+        vertices.Add(v2);
+        vertices.Add(v3);
+        vertices.Add(v4);
         triangles.Add(vertexIndex);
         triangles.Add(vertexIndex + 2);
         triangles.Add(vertexIndex + 1);
@@ -235,4 +253,5 @@ public class HexMesh : MonoBehaviour
         uvs.Add(new Vector2(uMin, vMax));
         uvs.Add(new Vector2(uMax, vMax));
     }
+
 }
