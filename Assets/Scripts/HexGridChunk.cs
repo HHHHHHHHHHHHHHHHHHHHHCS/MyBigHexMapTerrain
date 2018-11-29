@@ -10,7 +10,7 @@ using UnityEngine;
 public class HexGridChunk : MonoBehaviour
 {
     public Canvas gridCanvas;
-    public HexMesh terrain, rivers, roads, water, waterShore;
+    public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
 
     private HexCell[] cells;
 
@@ -67,6 +67,7 @@ public class HexGridChunk : MonoBehaviour
         roads.Clear();
         water.Clear();
         waterShore.Clear();
+        estuaries.Clear();
         for (int i = 0; i < cells.Length; i++)
         {
             Triangulate(cells[i]);
@@ -76,6 +77,7 @@ public class HexGridChunk : MonoBehaviour
         roads.Apply();
         water.Apply();
         waterShore.Apply();
+        estuaries.Apply();
     }
 
     /// <summary>
@@ -243,7 +245,7 @@ public class HexGridChunk : MonoBehaviour
 
         TriangulateEdgeStrip(m, cell.Color, e, cell.Color);
 
-        if(!cell.IsUnderwater)
+        if (!cell.IsUnderwater)
         {
             bool reversed = cell.IncomingRiver == direction;
             TriangulateRiverQuad(centerL, centerR, m.v2, m.v4, cell.RiverSurfaceY, 0.4f, reversed);
@@ -270,7 +272,7 @@ public class HexGridChunk : MonoBehaviour
         TriangulateEdgeStrip(m, cell.Color, e, cell.Color);
         TriangulateEdgeFan(center, m, cell.Color);
 
-        if(!cell.IsUnderwater)
+        if (!cell.IsUnderwater)
         {
             bool reversed = cell.HasIncomingRiver;
             TriangulateRiverQuad(m.v2, m.v4, e.v2, e.v4
@@ -375,24 +377,24 @@ public class HexGridChunk : MonoBehaviour
         {
             e2.v3.y = neighbor.StreamBedY;
 
-            if(!cell.IsUnderwater)
+            if (!cell.IsUnderwater)
             {
-                if(!neighbor.IsUnderwater)
+                if (!neighbor.IsUnderwater)
                 {
                     TriangulateRiverQuad(
                     e1.v2, e1.v4, e2.v2, e2.v4
                     , cell.RiverSurfaceY, neighbor.RiverSurfaceY, 0.8f
                     , cell.HasIncomingRiver && cell.IncomingRiver == direction);
                 }
-                else if(cell.Elevation>neighbor.WaterLevel)
+                else if (cell.Elevation > neighbor.WaterLevel)
                 {
                     TriangulateWaterfallInWater(
                         e1.v2, e1.v4, e2.v2, e2.v4
                         , cell.RiverSurfaceY, neighbor.RiverSurfaceY
                         , neighbor.WaterSurfaceY);
                 }
-                else if(!neighbor.IsUnderwater
-                    &&neighbor.Elevation>cell.WaterLevel)
+                else if (!neighbor.IsUnderwater
+                    && neighbor.Elevation > cell.WaterLevel)
                 {
                     TriangulateWaterfallInWater(
                         e2.v4, e2.v2, e1.v4, e1.v2
@@ -988,14 +990,22 @@ public class HexGridChunk : MonoBehaviour
         EdgeVertices e2 = new EdgeVertices(
             center2 + HexMetrics.GetSecondSolidCorner(direction.Opposite())
             , center2 + HexMetrics.GetFirstSolidCorner(direction.Opposite()));
-        waterShore.AddQuad(e1.v1, e1.v2, e2.v1, e2.v2);
-        waterShore.AddQuad(e1.v2, e1.v3, e2.v2, e2.v3);
-        waterShore.AddQuad(e1.v3, e1.v4, e2.v3, e2.v4);
-        waterShore.AddQuad(e1.v4, e1.v5, e2.v4, e2.v5);
-        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
-        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
-        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
-        waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+
+        if (cell.HasRiverThroughEdge(direction))
+        {
+            TriangulateEstuary(e1, e2);
+        }
+        else
+        {
+            waterShore.AddQuad(e1.v1, e1.v2, e2.v1, e2.v2);
+            waterShore.AddQuad(e1.v2, e1.v3, e2.v2, e2.v3);
+            waterShore.AddQuad(e1.v3, e1.v4, e2.v3, e2.v4);
+            waterShore.AddQuad(e1.v4, e1.v5, e2.v4, e2.v5);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+        }
 
         HexCell nextNeighbor = cell.GetNeighbor(direction.Next());
         if (nextNeighbor != null)
@@ -1010,8 +1020,8 @@ public class HexGridChunk : MonoBehaviour
         }
     }
 
-    private void TriangulateWaterfallInWater(Vector3 v1,Vector3 v2
-        ,Vector3 v3,Vector3 v4,float y1,float y2,float waterY)
+    private void TriangulateWaterfallInWater(Vector3 v1, Vector3 v2
+        , Vector3 v3, Vector3 v4, float y1, float y2, float waterY)
     {
         v1.y = v2.y = y1;
         v3.y = v4.y = y2;
@@ -1025,5 +1035,37 @@ public class HexGridChunk : MonoBehaviour
         v4 = Vector3.Lerp(v4, v2, t);
         rivers.AddQuadUnperturbed(v1, v2, v3, v4);
         rivers.AddQuadUV(0f, 1f, 0.8f, 1f);
+    }
+
+    private void TriangulateEstuary(EdgeVertices e1, EdgeVertices e2)
+    {
+        waterShore.AddTriangle(e2.v1, e1.v2, e1.v1);
+        waterShore.AddTriangle(e2.v5, e1.v5, e1.v4);
+        waterShore.AddTriangleUV(new Vector2(0f, 1f)
+            , new Vector2(0f, 0f), new Vector2(0f, 0f));
+        waterShore.AddTriangleUV(new Vector2(0f, 1f)
+            , new Vector2(0f, 0f), new Vector2(0f, 0f));
+
+
+        estuaries.AddQuad(e2.v1, e1.v2, e2.v2, e1.v3);
+        estuaries.AddTriangle(e1.v3, e2.v2, e2.v4);
+        estuaries.AddQuad(e1.v3, e1.v4, e2.v4, e2.v5);
+
+        estuaries.AddQuadUV(new Vector2(0f, 1f), new Vector2(0f, 0f)
+                , new Vector2(1f, 1f), new Vector2(0f, 0f));
+        estuaries.AddTriangleUV(new Vector2(0, 0)
+            , new Vector2(1f, 1f), new Vector2(1f, 1f));
+        estuaries.AddQuadUV(new Vector2(0, 0), new Vector2(0, 0)
+            , new Vector2(1, 1), new Vector2(0, 1));
+
+
+        estuaries.AddQuadUV2(
+            new Vector2(1.5f, 1f), new Vector2(0.7f, 1.15f)
+            , new Vector2(1, 0.8f), new Vector2(0.5f, 1.1f));
+        estuaries.AddTriangleUV2(new Vector2(0.5f, 1.1f)
+            , new Vector2(1, 0.8f), new Vector2(0, 0.8f));
+        estuaries.AddQuadUV2(
+            new Vector2(0.5f, 1.1f), new Vector2(0.3f, 1.15f)
+            , new Vector2(0, 0.8f), new Vector2(-0.5f, 1f));
     }
 }

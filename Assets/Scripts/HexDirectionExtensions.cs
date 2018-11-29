@@ -105,10 +105,10 @@ public static class MyUnity
             sb = new StringBuilder();
         }
 
-        for(int i=0;i<objArr.Length;i++)
+        for (int i = 0; i < objArr.Length; i++)
         {
             sb.Append(objArr[i].ToString());
-            if(i!=objArr.Length)
+            if (i != objArr.Length)
             {
                 sb.Append(spiltStr);
             }

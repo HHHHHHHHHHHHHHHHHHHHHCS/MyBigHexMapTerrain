@@ -9,11 +9,11 @@ using System;
 public class HexMesh : MonoBehaviour
 {
 
-    public bool useCollider, useColors, useUVCoordinates;
+    public bool useCollider, useColors, useUVCoordinates,useUV2Coordinates;
 
     [NonSerialized] List<Vector3> vertices;//顶点
     [NonSerialized] List<Color> colors;//颜色
-    [NonSerialized] List<Vector2> uvs;//uv
+    [NonSerialized] List<Vector2> uvs,uv2s;//uv
     [NonSerialized] List<int> triangles;//mesh的需要的顶点所对应的index
 
     Mesh hexMesh;
@@ -44,6 +44,10 @@ public class HexMesh : MonoBehaviour
         {
             uvs = ListPool<Vector2>.Get();
         }
+        if(useUV2Coordinates)
+        {
+            uv2s = ListPool<Vector2>.Get();
+        }
         triangles = ListPool<int>.Get();
     }
 
@@ -63,6 +67,11 @@ public class HexMesh : MonoBehaviour
         {
             hexMesh.SetUVs(0, uvs);
             ListPool<Vector2>.Add(uvs);
+        }
+        if (useUV2Coordinates)
+        {
+            hexMesh.SetUVs(1, uv2s);
+            ListPool<Vector2>.Add(uv2s);
         }
         hexMesh.SetTriangles(triangles, 0);
         ListPool<int>.Add(triangles);
@@ -137,7 +146,7 @@ public class HexMesh : MonoBehaviour
     /// <param name="uv1"></param>
     /// <param name="uv2"></param>
     /// <param name="uv3"></param>
-    public void AddTriangleUV(Vector2 uv1, Vector2 uv2, Vector3 uv3)
+    public void AddTriangleUV(Vector2 uv1, Vector2 uv2, Vector2 uv3)
     {
         uvs.Add(uv1);
         uvs.Add(uv2);
@@ -231,7 +240,7 @@ public class HexMesh : MonoBehaviour
     /// <param name="uv2"></param>
     /// <param name="uv3"></param>
     /// <param name="uv4"></param>
-    public void AddQuadUV(Vector2 uv1, Vector2 uv2, Vector3 uv3, Vector3 uv4)
+    public void AddQuadUV(Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
     {
         uvs.Add(uv1);
         uvs.Add(uv2);
@@ -254,4 +263,48 @@ public class HexMesh : MonoBehaviour
         uvs.Add(new Vector2(uMax, vMax));
     }
 
+    /// <summary>
+    /// uv2 添加三角形UV
+    /// </summary>
+    /// <param name="uv1"></param>
+    /// <param name="uv2"></param>
+    /// <param name="uv3"></param>
+    public void AddTriangleUV2(Vector2 uv1,Vector2 uv2,Vector2 uv3)
+    {
+        uv2s.Add(uv1);
+        uv2s.Add(uv2);
+        uv2s.Add(uv3);
+    }
+
+    /// <summary>
+    /// uv2 添加四边形UV
+    /// </summary>
+    /// <param name="uv1"></param>
+    /// <param name="uv2"></param>
+    /// <param name="uv3"></param>
+    /// <param name="uv4"></param>
+    public void AddQuadUV2(
+        Vector2 uv1, Vector2 uv2, Vector2 uv3,Vector2 uv4)
+    {
+        uv2s.Add(uv1);
+        uv2s.Add(uv2);
+        uv2s.Add(uv3);
+        uv2s.Add(uv4);
+    }
+
+    /// <summary>
+    /// uv2 添加四边形UV
+    /// </summary>
+    /// <param name="uMin"></param>
+    /// <param name="uMax"></param>
+    /// <param name="vMin"></param>
+    /// <param name="vMax"></param>
+    public void  AddQuadUV2(
+        float uMin,float uMax,float vMin,float vMax)
+    {
+        uv2s.Add(new Vector2(uMin,vMin));
+        uv2s.Add(new Vector2(uMax, vMin));
+        uv2s.Add(new Vector2(uMin, vMax));
+        uv2s.Add(new Vector2(uMax, vMax));
+    }
 }
