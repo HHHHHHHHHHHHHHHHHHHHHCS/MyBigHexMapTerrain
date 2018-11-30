@@ -11,6 +11,7 @@ public class HexGridChunk : MonoBehaviour
 {
     public Canvas gridCanvas;
     public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
+    public HexFeatureManager features;
 
     private HexCell[] cells;
 
@@ -68,6 +69,7 @@ public class HexGridChunk : MonoBehaviour
         water.Clear();
         waterShore.Clear();
         estuaries.Clear();
+        features.Clear();
         for (int i = 0; i < cells.Length; i++)
         {
             Triangulate(cells[i]);
@@ -78,6 +80,7 @@ public class HexGridChunk : MonoBehaviour
         water.Apply();
         waterShore.Apply();
         estuaries.Apply();
+        features.Apply();
     }
 
     /// <summary>
@@ -89,6 +92,10 @@ public class HexGridChunk : MonoBehaviour
         for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
         {
             Triangulate(d, cell);
+        }
+        if (!cell.IsUnderwater && !cell.HasRiver && !cell.HasRoads)
+        {
+            features.AddFeature(cell, cell.Position);
         }
     }
 
@@ -169,6 +176,11 @@ public class HexGridChunk : MonoBehaviour
         else
         {
             TriangulateWithoutRiver(direction, cell, center, e);
+
+            if (!cell.IsUnderwater && !cell.HasRoadThroughEdge(direction))
+            {
+                features.AddFeature(cell, (center + e.v1 + e.v5) * (1f / 3f));
+            }
         }
 
         if (direction <= HexDirection.SE)
@@ -352,6 +364,11 @@ public class HexGridChunk : MonoBehaviour
 
         TriangulateEdgeStrip(m, cell.Color, e, cell.Color);
         TriangulateEdgeFan(center, m, cell.Color);
+
+        if (!cell.IsUnderwater && !cell.HasRoadThroughEdge(direction))
+        {
+            features.AddFeature(cell, (center + e.v1 + e.v5) * (1f / 3f));
+        }
     }
 
     /// <summary>
@@ -1020,6 +1037,16 @@ public class HexGridChunk : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 生成瀑布
+    /// </summary>
+    /// <param name="v1"></param>
+    /// <param name="v2"></param>
+    /// <param name="v3"></param>
+    /// <param name="v4"></param>
+    /// <param name="y1"></param>
+    /// <param name="y2"></param>
+    /// <param name="waterY"></param>
     private void TriangulateWaterfallInWater(Vector3 v1, Vector3 v2
         , Vector3 v3, Vector3 v4, float y1, float y2, float waterY)
     {
@@ -1037,6 +1064,12 @@ public class HexGridChunk : MonoBehaviour
         rivers.AddQuadUV(0f, 1f, 0.8f, 1f);
     }
 
+    /// <summary>
+    /// 当河和水在一个高度的时候  生成 入口要么出口
+    /// </summary>
+    /// <param name="e1"></param>
+    /// <param name="e2"></param>
+    /// <param name="incomingRiver"></param>
     private void TriangulateEstuary(
         EdgeVertices e1, EdgeVertices e2, bool incomingRiver)
     {
@@ -1076,7 +1109,7 @@ public class HexGridChunk : MonoBehaviour
                 new Vector2(-0.5f, -0.2f), new Vector2(0.7f, 1.15f)
                 , new Vector2(0, 0f), new Vector2(0.5f, -0.3f));
             estuaries.AddTriangleUV2(new Vector2(0.5f, -0.3f)
-                , new Vector2(0,0f), new Vector2(1, 0f));
+                , new Vector2(0, 0f), new Vector2(1, 0f));
             estuaries.AddQuadUV2(
                 new Vector2(0.5f, -0.3f), new Vector2(0.7f, -0.35f)
                 , new Vector2(1, 0f), new Vector2(1.5f, -0.2f));

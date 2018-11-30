@@ -24,12 +24,16 @@ public class HexMapEditor : MonoBehaviour
     private Color activeColor;
     private int activeElevation;
     private int activeWaterLevel;
+    private int activeUrbanLevel, activeFarmLevel, activePlantLevel;
     private int brushSize;
     private bool applyColor;
     private bool applyElevation = true;
     private bool applyWaterLevel = true;
+    private bool applyUrbanLevel, applyFarmLevel, applyPlantLevel;
     private OptionalToggle riverMode = OptionalToggle.Ignore;
     private OptionalToggle roadMode = OptionalToggle.Ignore;
+
+
 
     private bool isDrag;
     private HexDirection dragDirection;
@@ -40,8 +44,7 @@ public class HexMapEditor : MonoBehaviour
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
 
-        root = transform.Find("Bg");
-
+        root = transform.Find("LeftBg");
         FindComponent(out ToggleGroup colorToggleGroup, "ToggleGroup_Color");
         FindComponent(out Toggle elevationToggle, "Toggle_Elevation");
         FindComponent(out Slider elevationSlider, "Slider_Elevation");
@@ -51,6 +54,14 @@ public class HexMapEditor : MonoBehaviour
         FindComponent(out Toggle labelsToggle, "Toggle_Labels");
         FindComponent(out ToggleGroup riverToggleGroup, "ToggleGroup_River");
         FindComponent(out ToggleGroup roadToggleGroup, "ToggleGroup_Road");
+
+        root = transform.Find("RightBg");
+        FindComponent(out Toggle urbanToggle, "Toggle_Urban");
+        FindComponent(out Slider urbanSlider, "Slider_Urban");
+        FindComponent(out Toggle farmToggle, "Toggle_Farm");
+        FindComponent(out Slider farmSlider, "Slider_Farm");
+        FindComponent(out Toggle plantToggle, "Toggle_Plant");
+        FindComponent(out Slider plantSlider, "Slider_Plant");
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
@@ -62,6 +73,14 @@ public class HexMapEditor : MonoBehaviour
         waterSlider.onValueChanged.AddListener(val => activeWaterLevel = (int)val);
         brushSlider.onValueChanged.AddListener(val => brushSize = (int)val);
         labelsToggle.onValueChanged.AddListener(ShowUI);
+
+        urbanToggle.onValueChanged.AddListener(bo => applyUrbanLevel = bo);
+        urbanSlider.onValueChanged.AddListener(val => activeUrbanLevel = (int)val);
+        farmToggle.onValueChanged.AddListener(bo => applyFarmLevel = bo);
+        farmSlider.onValueChanged.AddListener(val => activeFarmLevel = (int)val);
+        plantToggle.onValueChanged.AddListener(bo => applyPlantLevel = bo);
+        plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int)val);
+
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
@@ -146,6 +165,18 @@ public class HexMapEditor : MonoBehaviour
             if (applyWaterLevel)
             {
                 cell.WaterLevel = activeWaterLevel;
+            }
+            if (applyUrbanLevel)
+            {
+                cell.UrbanLevel = activeUrbanLevel;
+            }
+            if (applyFarmLevel)
+            {
+                cell.FarmLevel = activeFarmLevel;
+            }
+            if (applyPlantLevel)
+            {
+                cell.PlantLevel = activePlantLevel;
             }
             if (riverMode == OptionalToggle.No)
             {

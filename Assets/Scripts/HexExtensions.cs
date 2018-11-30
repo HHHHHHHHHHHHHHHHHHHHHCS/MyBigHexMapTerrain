@@ -91,6 +91,51 @@ public static class HexDirectionExtensions
 }
 
 /// <summary>
+/// 地形的装饰物
+/// </summary>
+public struct HexHash
+{
+    /// <summary>
+    /// a:是否生成 b:建筑 c:农田 d:植物 e:生成等级
+    /// </summary>
+    public float a, b, c, d, e;
+
+    public static HexHash Create()
+    {
+        HexHash hash;
+        hash.a = Random.value;
+        hash.b = Random.value;
+        hash.c = Random.value;
+        hash.d = Random.value;
+        hash.e = Random.value;
+        return hash;
+    }
+}
+
+/// <summary>
+/// 六边形的建筑容器 
+/// </summary>
+[System.Serializable]
+public struct HexFeatureCollection
+{
+    public Transform[] prefabs;
+
+    public Transform Pick(float choice)
+    {
+        if (prefabs == null || prefabs.Length == 0)
+        {
+            Debug.Log("HexFeatureCollection Pick() prefabs is null");
+            return null;
+        }
+        var index = (int)(choice * prefabs.Length);
+        index = index == prefabs.Length ? index - 1 : index;
+        return prefabs[index];
+    }
+}
+
+
+
+/// <summary>
 /// 扩充unity 一些方法方便测试
 /// </summary>
 public static class MyUnity
@@ -118,3 +163,4 @@ public static class MyUnity
         sb.Clear();
     }
 }
+

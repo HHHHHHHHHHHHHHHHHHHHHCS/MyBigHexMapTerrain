@@ -19,6 +19,7 @@ public class HexCell : MonoBehaviour
     private HexDirection incomingRiver, outgoingRiver;
     private bool[] roads = new bool[6];
     private int waterLevel;
+    private int urbanLevel,farmLevel,plantLevel;
 
     public bool HasIncomingRiver { get => hasIncomingRiver; private set => hasIncomingRiver = value; }
     public bool HasOutgoingRiver { get => hasOutgoingRiver; private set => hasOutgoingRiver = value; }
@@ -164,6 +165,54 @@ public class HexCell : MonoBehaviour
         {
             return (waterLevel + HexMetrics.waterElevationOffset)
                 * HexMetrics.elevationStep;
+        }
+    }
+
+    public int UrbanLevel
+    {
+        get
+        {
+            return urbanLevel;
+        }
+        set
+        {
+            if(urbanLevel!=value)
+            {
+                urbanLevel = value;
+                RefreshSelfOnly();
+            }
+        }
+    }
+
+    public int FarmLevel
+    {
+        get
+        {
+            return farmLevel;
+        }
+        set
+        {
+            if (farmLevel != value)
+            {
+                farmLevel = value;
+                RefreshSelfOnly();
+            }
+        }
+    }
+
+    public int PlantLevel
+    {
+        get
+        {
+            return plantLevel;
+        }
+        set
+        {
+            if (plantLevel != value)
+            {
+                plantLevel = value;
+                RefreshSelfOnly();
+            }
         }
     }
 
