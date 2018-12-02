@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#define _test
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -65,7 +66,11 @@ public sealed class HexMetrics
     /// <summary>
     /// 噪音 地形的左右偏移
     /// </summary>
+#if test
+    public const float cellPerturbStrength = 0f;
+#else
     public const float cellPerturbStrength = 4f;
+#endif
 
     /// <summary>
     /// 噪音 噪音的缩放
@@ -75,7 +80,12 @@ public sealed class HexMetrics
     /// <summary>
     /// 噪音 小地形块的高度强度
     /// </summary>
+#if test
+    public const float elevationPerturbStrength = 0f;
+#else
     public const float elevationPerturbStrength = 1.5f;
+#endif
+
 
     /// <summary>
     /// 地形小块的尺寸
@@ -118,6 +128,21 @@ public sealed class HexMetrics
     public const float hashGridScale = 0.25f;
 
     /// <summary>
+    /// 墙体的高度
+    /// </summary>
+    public const float wallHeight = 3f;
+
+    /// <summary>
+    /// 墙体的厚度
+    /// </summary>
+    public const float wallThickness = 0.75f;
+
+    /// <summary>
+    /// 墙体的高度偏移
+    /// </summary>
+    public const float wallElevationOffset = verticalTerraceStepSize;
+
+    /// <summary>
     /// 地形的噪音图
     /// </summary>
     public static Texture2D noiseSource;
@@ -136,12 +161,13 @@ public sealed class HexMetrics
         new Vector3(0f,0f,outerRadius),
     };
 
-    private static float[][] featureThresholds =
-        {
+    /// <summary>
+    /// 装饰物的随机概率
+    /// </summary>
+    private static float[][] featureThresholds ={
         new float[]{0.0f,0.0f,0.4f},
         new float[]{0.0f,0.4f,0.6f},
-        new float[]{0.4f,0.6f,0.8f},
-    };
+        new float[]{0.4f,0.6f,0.8f},};
 
 
     /// <summary>
@@ -354,8 +380,44 @@ public sealed class HexMetrics
         return hashGrid[x + z * hashGridSize];
     }
 
+    /// <summary>
+    /// 根据装饰物的等级得到装饰物的随机概率
+    /// </summary>
+    /// <param name="level"></param>
+    /// <returns></returns>
     public static float[] GetFeatureThresholds(int level)
     {
         return featureThresholds[level];
+    }
+
+    /// <summary>
+    /// 得到墙体厚度的偏差(一半)
+    /// </summary>
+    /// <param name="near"></param>
+    /// <param name="far"></param>
+    /// <returns></returns>
+    public static Vector3 WallThicknessOffset(Vector3 near, Vector3 far)
+    {
+        Vector3 offset;
+        offset.x = far.x - near.x;
+        offset.y = 0f;
+        offset.z = far.z - near.z;
+        return offset.normalized * (wallThickness * 0.5f);
+    }
+
+    /// <summary>
+    /// 得到墙体的高度(插入土地用)
+    /// </summary>
+    /// <param name="near"></param>
+    /// <param name="far"></param>
+    /// <returns></returns>
+    public static Vector3 WallLerp(Vector3 near, Vector3 far)
+    {
+        near.x += (far.x - near.x) * 0.5f;
+        near.z += (far.z - near.z) * 0.5f;
+        float v =
+            near.y < far.y ? wallElevationOffset : (1f - wallElevationOffset);
+        near.y += (far.y - near.y) * v;
+        return near;
     }
 }

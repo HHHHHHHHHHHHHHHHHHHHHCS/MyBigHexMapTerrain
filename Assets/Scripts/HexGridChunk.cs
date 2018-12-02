@@ -10,7 +10,8 @@ using UnityEngine;
 public class HexGridChunk : MonoBehaviour
 {
     public Canvas gridCanvas;
-    public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
+    public HexMesh terrain, rivers, roads, water, waterShore
+        , estuaries;
     public HexFeatureManager features;
 
     private HexCell[] cells;
@@ -432,6 +433,7 @@ public class HexGridChunk : MonoBehaviour
                 , cell.HasRoadThroughEdge(direction));
         }
 
+        features.AddWall(e1,cell,e2,neighbor);
 
         HexCell nextNeightbor = cell.GetNeighbor(direction.Next());
         if (direction <= HexDirection.E && nextNeightbor != null)
@@ -555,6 +557,10 @@ public class HexGridChunk : MonoBehaviour
             terrain.AddTriangle(bottom, left, right);
             terrain.AddTriangleColor(bottomCell.Color, leftCell.Color, rightCell.Color);
         }
+
+
+        features.AddWall(bottom, bottomCell, left
+            , leftCell, right, rightCell);
     }
 
     /// <summary>

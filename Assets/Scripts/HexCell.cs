@@ -20,6 +20,7 @@ public class HexCell : MonoBehaviour
     private bool[] roads = new bool[6];
     private int waterLevel;
     private int urbanLevel,farmLevel,plantLevel;
+    private bool walled;
 
     public bool HasIncomingRiver { get => hasIncomingRiver; private set => hasIncomingRiver = value; }
     public bool HasOutgoingRiver { get => hasOutgoingRiver; private set => hasOutgoingRiver = value; }
@@ -216,6 +217,21 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    public bool Walled
+    {
+        get
+        {
+            return walled;
+        }
+        set
+        {
+            if(walled!=value)
+            {
+                walled = value;
+                Refresh();
+            }
+        }
+    }
 
     public HexCell GetNeighbor(HexDirection direction)
     {

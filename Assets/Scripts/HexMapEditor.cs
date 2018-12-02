@@ -32,7 +32,7 @@ public class HexMapEditor : MonoBehaviour
     private bool applyUrbanLevel, applyFarmLevel, applyPlantLevel;
     private OptionalToggle riverMode = OptionalToggle.Ignore;
     private OptionalToggle roadMode = OptionalToggle.Ignore;
-
+    private OptionalToggle walledMode = OptionalToggle.Ignore;
 
 
     private bool isDrag;
@@ -62,10 +62,12 @@ public class HexMapEditor : MonoBehaviour
         FindComponent(out Slider farmSlider, "Slider_Farm");
         FindComponent(out Toggle plantToggle, "Toggle_Plant");
         FindComponent(out Slider plantSlider, "Slider_Plant");
+        FindComponent(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
         var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
+        var walledToggles = walledToggleGroup.GetComponentsInChildren<Toggle>();
 
         elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
         elevationSlider.onValueChanged.AddListener(val => activeElevation = (int)val);
@@ -80,11 +82,12 @@ public class HexMapEditor : MonoBehaviour
         farmSlider.onValueChanged.AddListener(val => activeFarmLevel = (int)val);
         plantToggle.onValueChanged.AddListener(bo => applyPlantLevel = bo);
         plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int)val);
-
+        
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
         InitToggles(roadToggles, SetRoadMode);
+        InitToggles(walledToggles, SetWalledMode);
     }
 
     private void FindComponent<T>(out T obj, string path, Transform parent = null)
@@ -186,6 +189,10 @@ public class HexMapEditor : MonoBehaviour
             {
                 cell.RemoveRoads();
             }
+            if(walledMode!=OptionalToggle.Ignore)
+            {
+                cell.Walled = walledMode == OptionalToggle.Yes ;
+            }
             if (isDrag)
             {
                 HexCell otherCell = cell.GetNeighbor(dragDirection.Opposite());
@@ -250,6 +257,11 @@ public class HexMapEditor : MonoBehaviour
     public void SetRoadMode(int mode)
     {
         roadMode = (OptionalToggle)mode;
+    }
+
+    public void SetWalledMode(int mode)
+    {
+        walledMode = (OptionalToggle)mode;
     }
 
     private void ValidateDrag(HexCell currentCell)
