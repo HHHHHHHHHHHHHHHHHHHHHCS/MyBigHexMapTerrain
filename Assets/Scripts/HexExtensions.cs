@@ -153,7 +153,7 @@ public static class MyUnity
         for (int i = 0; i < objArr.Length; i++)
         {
             sb.Append(objArr[i].ToString());
-            if (i != objArr.Length)
+            if (i != objArr.Length-1)
             {
                 sb.Append(spiltStr);
             }

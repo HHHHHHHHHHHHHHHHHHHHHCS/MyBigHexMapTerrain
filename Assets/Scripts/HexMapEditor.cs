@@ -24,12 +24,14 @@ public class HexMapEditor : MonoBehaviour
     private Color activeColor;
     private int activeElevation;
     private int activeWaterLevel;
-    private int activeUrbanLevel, activeFarmLevel, activePlantLevel;
+    private int activeUrbanLevel, activeFarmLevel
+        , activePlantLevel,activeSpecialLevel;
     private int brushSize;
     private bool applyColor;
     private bool applyElevation = true;
     private bool applyWaterLevel = true;
-    private bool applyUrbanLevel, applyFarmLevel, applyPlantLevel;
+    private bool applyUrbanLevel, applyFarmLevel
+        , applyPlantLevel,applySpecialLevel;
     private OptionalToggle riverMode = OptionalToggle.Ignore;
     private OptionalToggle roadMode = OptionalToggle.Ignore;
     private OptionalToggle walledMode = OptionalToggle.Ignore;
@@ -62,6 +64,8 @@ public class HexMapEditor : MonoBehaviour
         FindComponent(out Slider farmSlider, "Slider_Farm");
         FindComponent(out Toggle plantToggle, "Toggle_Plant");
         FindComponent(out Slider plantSlider, "Slider_Plant");
+        FindComponent(out Toggle specialToggle, "Toggle_Special");
+        FindComponent(out Slider specialSlider, "Slider_Special");
         FindComponent(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
@@ -80,6 +84,8 @@ public class HexMapEditor : MonoBehaviour
         urbanSlider.onValueChanged.AddListener(val => activeUrbanLevel = (int)val);
         farmToggle.onValueChanged.AddListener(bo => applyFarmLevel = bo);
         farmSlider.onValueChanged.AddListener(val => activeFarmLevel = (int)val);
+        specialToggle.onValueChanged.AddListener(bo => applySpecialLevel = bo);
+        specialSlider.onValueChanged.AddListener(val => activeSpecialLevel = (int)val);
         plantToggle.onValueChanged.AddListener(bo => applyPlantLevel = bo);
         plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int)val);
         
@@ -192,6 +198,10 @@ public class HexMapEditor : MonoBehaviour
             if(walledMode!=OptionalToggle.Ignore)
             {
                 cell.Walled = walledMode == OptionalToggle.Yes ;
+            }
+            if(applySpecialLevel)
+            {
+                cell.SpecialIndex = activeSpecialLevel;
             }
             if (isDrag)
             {

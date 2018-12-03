@@ -130,7 +130,12 @@ public sealed class HexMetrics
     /// <summary>
     /// 墙体的高度
     /// </summary>
-    public const float wallHeight = 3f;
+    public const float wallHeight = 4f;
+
+    /// <summary>
+    /// 墙体的高度偏移
+    /// </summary>
+    public const float wallYOffset = -1f;
 
     /// <summary>
     /// 墙体的厚度
@@ -141,6 +146,16 @@ public sealed class HexMetrics
     /// 墙体的高度偏移
     /// </summary>
     public const float wallElevationOffset = verticalTerraceStepSize;
+
+    /// <summary>
+    /// 塔墙的生成阀值
+    /// </summary>
+    public const float wallTowerThreshold = 0.5f;
+
+    /// <summary>
+    /// 桥的设计长度
+    /// </summary>
+    public const float bridgeDesignLength = 7f;
 
     /// <summary>
     /// 地形的噪音图
@@ -417,7 +432,7 @@ public sealed class HexMetrics
         near.z += (far.z - near.z) * 0.5f;
         float v =
             near.y < far.y ? wallElevationOffset : (1f - wallElevationOffset);
-        near.y += (far.y - near.y) * v;
+        near.y += (far.y - near.y) * v+wallYOffset;
         return near;
     }
 }
