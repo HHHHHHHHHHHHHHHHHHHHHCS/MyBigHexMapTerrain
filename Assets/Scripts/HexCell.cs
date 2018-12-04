@@ -278,12 +278,22 @@ public class HexCell : MonoBehaviour
         return HexMetrics.GetEdgeType(elevation, otherCell.elevation);
     }
 
+    /// <summary>
+    /// 得到高度差
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public int GetElevationDifference(HexDirection direction)
     {
         int difference = Elevation - GetNeighbor(direction).Elevation;
         return difference >= 0 ? difference : -difference;
     }
 
+    /// <summary>
+    /// 是否能生成河流
+    /// </summary>
+    /// <param name="neighbor"></param>
+    /// <returns></returns>
     private bool IsVaildRiverDestination(HexCell neighbor)
     {
         return neighbor && (
@@ -291,15 +301,17 @@ public class HexCell : MonoBehaviour
                    || waterLevel == neighbor.elevation);
     }
 
+    /// <summary>
+    /// 刷新(包括周围的邻居)
+    /// </summary>
     public void Refresh()
     {
         if (chunk)
         {
             chunk.Refresh();
 
-            for (int i = 0; i < neighbors.Length; i++)
+            foreach (var neighbor in neighbors)
             {
-                HexCell neighbor = neighbors[i];
                 if (neighbor != null && neighbor.chunk != chunk)
                 {
                     neighbor.chunk.Refresh();
@@ -308,6 +320,9 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 刷新自己
+    /// </summary>
     private void RefreshSelfOnly()
     {
         chunk.Refresh();
@@ -344,7 +359,7 @@ public class HexCell : MonoBehaviour
 
     public void RemoveRoads()
     {
-        for (int i = 0; i < neighbors.Length; i++)
+        for (var i = 0; i < neighbors.Length; i++)
         {
             if (roads[i])
             {
@@ -423,6 +438,9 @@ public class HexCell : MonoBehaviour
         SetRoad((int) direction, false);
     }
 
+    /// <summary>
+    /// 验证是否能生成河流  然后移除河流
+    /// </summary>
     private void ValidateRivers()
     {
         if (HasOutgoingRiver
@@ -512,7 +530,7 @@ public class HexCell : MonoBehaviour
             hasOutgoingRiver = false;
         }
         int roadFlags = reader.ReadByte();
-        for (int i = 0; i < roads.Length; i++)
+        for (var i = 0; i < roads.Length; i++)
         {
             roads[i] = (roadFlags & (1 << i)) != 0;
         }
