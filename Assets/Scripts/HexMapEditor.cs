@@ -20,6 +20,7 @@ public class HexMapEditor : MonoBehaviour
     private HexGrid hexGrid;
     private Camera mainCam;
     private Transform root;
+    private Transform createNewMapBg;
 
     private int activeTerrainTypeIndex;
     private int activeElevation;
@@ -65,10 +66,15 @@ public class HexMapEditor : MonoBehaviour
         FindComponent(out Toggle specialToggle, "Toggle_Special");
         FindComponent(out Slider specialSlider, "Slider_Special");
         FindComponent(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
-        FindComponent(out Button saveButton, "Image_SaveLoad/Button_Save");
-        FindComponent(out Button loadButton, "Image_SaveLoad/Button_Load");
-        FindComponent(out Button newButton, "Image_SaveLoad/Button_New");
-
+        FindComponent(out Transform imageSaveLoad, "Image_SaveLoad");
+        FindComponent(out Button saveMapButton, "Button_Save", imageSaveLoad);
+        FindComponent(out Button loadMapButton, "Button_Load", imageSaveLoad);
+        FindComponent(out Button newMapButton, "Button_New", imageSaveLoad);
+        FindComponent(out createNewMapBg, "Bg_CreateNewMap", newMapButton);
+        FindComponent(out Button samallButton, "Button_Small", createNewMapBg);
+        FindComponent(out Button mediumButton, "Button_Medium", createNewMapBg);
+        FindComponent(out Button largeButton, "Button_Large", createNewMapBg);
+        FindComponent(out Button cancelButton, "Button_Cancel", createNewMapBg);
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
@@ -90,14 +96,23 @@ public class HexMapEditor : MonoBehaviour
         specialSlider.onValueChanged.AddListener(val => activeSpecialLevel = (int) val);
         plantToggle.onValueChanged.AddListener(bo => applyPlantLevel = bo);
         plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int) val);
-        saveButton.onClick.AddListener(Save);
-        loadButton.onClick.AddListener(Load);
-        newButton.onClick.AddListener(NewMap);
+        saveMapButton.onClick.AddListener(Save);
+        loadMapButton.onClick.AddListener(Load);
+        newMapButton.onClick.AddListener(() => ShowHideCreateNewMapBg(true));
+        cancelButton.onClick.AddListener(() => ShowHideCreateNewMapBg(false));
+        samallButton.onClick.AddListener(() => CreateNewMap(0));
+        mediumButton.onClick.AddListener(() => CreateNewMap(1));
+        largeButton.onClick.AddListener(() => CreateNewMap(2));
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
         InitToggles(roadToggles, SetRoadMode);
         InitToggles(walledToggles, SetWalledMode);
+    }
+
+    private void FindComponent<T>(out T obj, string path, Component parent)
+    {
+        FindComponent(out obj, path, parent ? parent.transform : root);
     }
 
     private void FindComponent<T>(out T obj, string path, Transform parent = null)
@@ -312,8 +327,37 @@ public class HexMapEditor : MonoBehaviour
         SaveLoadModule.Load(hexGrid);
     }
 
-    public void NewMap()
+    public void ShowHideCreateNewMapBg(bool isShow)
     {
-        hexGrid.CreateMap();
+        createNewMapBg.gameObject.SetActive(isShow);
+        HexMapCamera.Instance.Locked = isShow;
+    }
+
+    public void CreateNewMap(int size)
+    {
+        int x, z;
+        switch (size)
+        {
+            case 0:
+                x = 20;
+                z = 15;
+                break;
+            case 1:
+                x = 40;
+                z = 30;
+                break;
+            case 2:
+                x = 80;
+                z = 60;
+                break;
+            default:
+                x = hexGrid.cellCountX;
+                z = hexGrid.cellCountZ;
+                break;
+        }
+
+        hexGrid.CreateMap(x, z);
+        HexMapCamera.Instance.ValidatePosition();
+        ShowHideCreateNewMapBg(false);
     }
 }

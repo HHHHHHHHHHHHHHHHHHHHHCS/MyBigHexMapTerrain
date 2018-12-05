@@ -27,7 +27,7 @@ public class HexGrid : MonoBehaviour
         HexMetrics.noiseSource = noiseSource;
         HexMetrics.InitializeHashGrid(seed);
         HexMetrics.colors = colors;
-        CreateMap();
+        CreateMap(cellCountX, cellCountZ);
     }
 
     private void OnEnable()
@@ -40,8 +40,15 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void CreateMap()
+    public void CreateMap(int x, int z)
     {
+        if (x <= 0 || x % HexMetrics.chunkSizeX != 0
+                   || z <= 0 || z % HexMetrics.chunkSizeZ != 0)
+        {
+            Debug.Log("输入的cell count 不能被整除或者小于等于0");
+            return;
+        }
+
         if (chunks != null)
         {
             foreach (var t in chunks)
@@ -49,10 +56,10 @@ public class HexGrid : MonoBehaviour
                 Destroy(t.gameObject);
             }
         }
-
-        cellCountX = cellCountX / HexMetrics.chunkSizeX;
-        cellCountZ = cellCountZ / HexMetrics.chunkSizeZ;
-
+        cellCountX = x;
+        cellCountZ = z;
+        chunkCountX = cellCountX / HexMetrics.chunkSizeX;
+        chunkCountZ = cellCountZ / HexMetrics.chunkSizeZ;
         CreateChunks();
         CreateCells();
     }
