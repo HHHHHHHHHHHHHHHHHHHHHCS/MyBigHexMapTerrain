@@ -67,6 +67,7 @@ public class HexMapEditor : MonoBehaviour
         FindComponent(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
         FindComponent(out Button saveButton, "Image_SaveLoad/Button_Save");
         FindComponent(out Button loadButton, "Image_SaveLoad/Button_Load");
+        FindComponent(out Button newButton, "Image_SaveLoad/Button_New");
 
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
@@ -91,6 +92,7 @@ public class HexMapEditor : MonoBehaviour
         plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int) val);
         saveButton.onClick.AddListener(Save);
         loadButton.onClick.AddListener(Load);
+        newButton.onClick.AddListener(NewMap);
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
@@ -308,5 +310,10 @@ public class HexMapEditor : MonoBehaviour
     public void Load()
     {
         SaveLoadModule.Load(hexGrid);
+    }
+
+    public void NewMap()
+    {
+        hexGrid.CreateMap();
     }
 }

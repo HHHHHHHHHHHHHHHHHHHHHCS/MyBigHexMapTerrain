@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /// </summary>
 public class HexGrid : MonoBehaviour
 {
-    public int chunkCountX = 4, chunkCountZ = 3; //有几个地形块
+    public int cellCountX = 20, cellCountZ = 15; //一共有几个六边形
     public HexCell cellPrefab;
     public HexGridChunk chunkPrefab;
     public Text cellLabelPrefab;
@@ -20,19 +20,14 @@ public class HexGrid : MonoBehaviour
 
     private HexCell[] cells;
     private HexGridChunk[] chunks;
-    private int cellCountX, cellCountZ;
+    private int chunkCountX, chunkCountZ; //有几个地形块
 
     private void Awake()
     {
         HexMetrics.noiseSource = noiseSource;
         HexMetrics.InitializeHashGrid(seed);
         HexMetrics.colors = colors;
-
-        cellCountX = chunkCountX * HexMetrics.chunkSizeX;
-        cellCountZ = chunkCountZ * HexMetrics.chunkSizeZ;
-
-        CreateChunks();
-        CreateCells();
+        CreateMap();
     }
 
     private void OnEnable()
@@ -43,6 +38,23 @@ public class HexGrid : MonoBehaviour
             HexMetrics.InitializeHashGrid(seed);
             HexMetrics.colors = colors;
         }
+    }
+
+    public void CreateMap()
+    {
+        if (chunks != null)
+        {
+            foreach (var t in chunks)
+            {
+                Destroy(t.gameObject);
+            }
+        }
+
+        cellCountX = cellCountX / HexMetrics.chunkSizeX;
+        cellCountZ = cellCountZ / HexMetrics.chunkSizeZ;
+
+        CreateChunks();
+        CreateCells();
     }
 
 
