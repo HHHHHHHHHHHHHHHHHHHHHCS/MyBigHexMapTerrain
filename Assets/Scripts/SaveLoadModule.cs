@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class SaveLoadModule
 {
-    private const int versionHeader = 0;
+    private const int versionHeader = 1;
     private const string saveFileName = "test.map";
     private const string saveDir = @"../SaveMap";
 
@@ -35,9 +35,10 @@ public static class SaveLoadModule
             File.Open(savePath, FileMode.OpenOrCreate)))
         {
             var header = reader.ReadInt32();
-            if (header == versionHeader)
+            if (header <= versionHeader)
             {
-                hexGrid.Load(reader);
+                hexGrid.Load(reader, header);
+                HexMapCamera.Instance.ValidatePosition();
             }
             else
             {

@@ -138,8 +138,9 @@ public struct HexFeatureCollection
 /// <summary>
 /// 扩充unity 一些方法方便测试
 /// </summary>
-public static class MyUnity
+public static class MyU
 {
+
     private static StringBuilder sb;
     private const string spiltStr = "___";
 
@@ -161,6 +162,29 @@ public static class MyUnity
 
         Debug.Log(sb);
         sb.Clear();
+    }
+
+    private static Transform root;
+
+    public static void BeginParent(Transform parent)
+    {
+        root = parent;
+    }
+
+    public static void EndParent()
+    {
+        root = null;
+    }
+
+    public static void GetCom<T>(out T obj, string path, Component parent)
+    {
+        GetCom(out obj, path, parent ? parent.transform : root);
+    }
+
+    public static void GetCom<T>(out T obj, string path, Transform parent = null)
+    {
+        parent = parent ?? root;
+        obj = parent.Find(path).GetComponent<T>();
     }
 }
 

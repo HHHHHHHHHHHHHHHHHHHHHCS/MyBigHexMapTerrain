@@ -7,7 +7,11 @@ using UnityEngine;
 /// </summary>
 public class HexMapCamera : MonoBehaviour
 {
-    private static HexMapCamera instance;
+    public static HexMapCamera Instance
+    {
+        private set;
+        get;
+    }
 
     public HexGrid grid;
     public float stickMinZoom = -250, stickMaxZoom = -45; //视野缩放摄像机的位置
@@ -24,15 +28,10 @@ public class HexMapCamera : MonoBehaviour
         set => enabled = !value;
     }
 
-    public static HexMapCamera Instance
-    {
-        get => instance;
-    }
-
 
     private void Awake()
     {
-        instance = this;
+        Instance = this;
         swivel = transform.GetChild(0);
         stick = swivel.GetChild(0);
     }

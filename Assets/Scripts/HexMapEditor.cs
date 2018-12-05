@@ -17,10 +17,11 @@ public class HexMapEditor : MonoBehaviour
         No
     }
 
+    public HexMapEditor Instance { private set; get; }
+
+
     private HexGrid hexGrid;
     private Camera mainCam;
-    private Transform root;
-    private Transform createNewMapBg;
 
     private int activeTerrainTypeIndex;
     private int activeElevation;
@@ -35,46 +36,46 @@ public class HexMapEditor : MonoBehaviour
     private OptionalToggle roadMode = OptionalToggle.Ignore;
     private OptionalToggle walledMode = OptionalToggle.Ignore;
 
-
     private bool isDrag;
     private HexDirection dragDirection;
     private HexCell previousCell;
 
+    private NewMapUI newMapUI;
+    private SaveLoadUI saveLoadUI;
+
     private void Awake()
     {
+        Instance = this;
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
 
-        root = transform.Find("LeftBg");
-        FindComponent(out ToggleGroup colorToggleGroup, "ToggleGroup_Color");
-        FindComponent(out Toggle elevationToggle, "Toggle_Elevation");
-        FindComponent(out Slider elevationSlider, "Slider_Elevation");
-        FindComponent(out Toggle waterToggle, "Toggle_Water");
-        FindComponent(out Slider waterSlider, "Slider_Water");
-        FindComponent(out Slider brushSlider, "Slider_BrustSize");
-        FindComponent(out Toggle labelsToggle, "Toggle_Labels");
-        FindComponent(out ToggleGroup riverToggleGroup, "ToggleGroup_River");
-        FindComponent(out ToggleGroup roadToggleGroup, "ToggleGroup_Road");
+        MyU.BeginParent(transform.Find("LeftBg"));
+        MyU.GetCom(out ToggleGroup colorToggleGroup, "ToggleGroup_Color");
+        MyU.GetCom(out Toggle elevationToggle, "Toggle_Elevation");
+        MyU.GetCom(out Slider elevationSlider, "Slider_Elevation");
+        MyU.GetCom(out Toggle waterToggle, "Toggle_Water");
+        MyU.GetCom(out Slider waterSlider, "Slider_Water");
+        MyU.GetCom(out Slider brushSlider, "Slider_BrustSize");
+        MyU.GetCom(out Toggle labelsToggle, "Toggle_Labels");
+        MyU.GetCom(out ToggleGroup riverToggleGroup, "ToggleGroup_River");
+        MyU.GetCom(out ToggleGroup roadToggleGroup, "ToggleGroup_Road");
 
-        root = transform.Find("RightBg");
-        FindComponent(out Toggle urbanToggle, "Toggle_Urban");
-        FindComponent(out Slider urbanSlider, "Slider_Urban");
-        FindComponent(out Toggle farmToggle, "Toggle_Farm");
-        FindComponent(out Slider farmSlider, "Slider_Farm");
-        FindComponent(out Toggle plantToggle, "Toggle_Plant");
-        FindComponent(out Slider plantSlider, "Slider_Plant");
-        FindComponent(out Toggle specialToggle, "Toggle_Special");
-        FindComponent(out Slider specialSlider, "Slider_Special");
-        FindComponent(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
-        FindComponent(out Transform imageSaveLoad, "Image_SaveLoad");
-        FindComponent(out Button saveMapButton, "Button_Save", imageSaveLoad);
-        FindComponent(out Button loadMapButton, "Button_Load", imageSaveLoad);
-        FindComponent(out Button newMapButton, "Button_New", imageSaveLoad);
-        FindComponent(out createNewMapBg, "Bg_CreateNewMap", newMapButton);
-        FindComponent(out Button samallButton, "Button_Small", createNewMapBg);
-        FindComponent(out Button mediumButton, "Button_Medium", createNewMapBg);
-        FindComponent(out Button largeButton, "Button_Large", createNewMapBg);
-        FindComponent(out Button cancelButton, "Button_Cancel", createNewMapBg);
+        MyU.BeginParent(transform.Find("RightBg"));
+        MyU.GetCom(out Toggle urbanToggle, "Toggle_Urban");
+        MyU.GetCom(out Slider urbanSlider, "Slider_Urban");
+        MyU.GetCom(out Toggle farmToggle, "Toggle_Farm");
+        MyU.GetCom(out Slider farmSlider, "Slider_Farm");
+        MyU.GetCom(out Toggle plantToggle, "Toggle_Plant");
+        MyU.GetCom(out Slider plantSlider, "Slider_Plant");
+        MyU.GetCom(out Toggle specialToggle, "Toggle_Special");
+        MyU.GetCom(out Slider specialSlider, "Slider_Special");
+        MyU.GetCom(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
+        MyU.GetCom(out Transform fileBg, "Bg_File");
+        MyU.GetCom(out saveLoadUI, "Button_SaveLoad", fileBg);
+        MyU.GetCom(out newMapUI, "Button_New", fileBg);
+
+        saveLoadUI.Init(hexGrid);
+        newMapUI.Init(hexGrid);
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
@@ -96,13 +97,6 @@ public class HexMapEditor : MonoBehaviour
         specialSlider.onValueChanged.AddListener(val => activeSpecialLevel = (int) val);
         plantToggle.onValueChanged.AddListener(bo => applyPlantLevel = bo);
         plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int) val);
-        saveMapButton.onClick.AddListener(Save);
-        loadMapButton.onClick.AddListener(Load);
-        newMapButton.onClick.AddListener(() => ShowHideCreateNewMapBg(true));
-        cancelButton.onClick.AddListener(() => ShowHideCreateNewMapBg(false));
-        samallButton.onClick.AddListener(() => CreateNewMap(0));
-        mediumButton.onClick.AddListener(() => CreateNewMap(1));
-        largeButton.onClick.AddListener(() => CreateNewMap(2));
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
@@ -110,16 +104,6 @@ public class HexMapEditor : MonoBehaviour
         InitToggles(walledToggles, SetWalledMode);
     }
 
-    private void FindComponent<T>(out T obj, string path, Component parent)
-    {
-        FindComponent(out obj, path, parent ? parent.transform : root);
-    }
-
-    private void FindComponent<T>(out T obj, string path, Transform parent = null)
-    {
-        parent = parent ?? root;
-        obj = parent.Find(path).GetComponent<T>();
-    }
 
     private void Update()
     {
@@ -317,47 +301,4 @@ public class HexMapEditor : MonoBehaviour
         hexGrid.ShowUI(visible);
     }
 
-    public void Save()
-    {
-        SaveLoadModule.Save(hexGrid);
-    }
-
-    public void Load()
-    {
-        SaveLoadModule.Load(hexGrid);
-    }
-
-    public void ShowHideCreateNewMapBg(bool isShow)
-    {
-        createNewMapBg.gameObject.SetActive(isShow);
-        HexMapCamera.Instance.Locked = isShow;
-    }
-
-    public void CreateNewMap(int size)
-    {
-        int x, z;
-        switch (size)
-        {
-            case 0:
-                x = 20;
-                z = 15;
-                break;
-            case 1:
-                x = 40;
-                z = 30;
-                break;
-            case 2:
-                x = 80;
-                z = 60;
-                break;
-            default:
-                x = hexGrid.cellCountX;
-                z = hexGrid.cellCountZ;
-                break;
-        }
-
-        hexGrid.CreateMap(x, z);
-        HexMapCamera.Instance.ValidatePosition();
-        ShowHideCreateNewMapBg(false);
-    }
 }

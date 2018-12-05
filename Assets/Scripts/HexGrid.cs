@@ -40,13 +40,13 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void CreateMap(int x, int z)
+    public bool CreateMap(int x, int z)
     {
         if (x <= 0 || x % HexMetrics.chunkSizeX != 0
                    || z <= 0 || z % HexMetrics.chunkSizeZ != 0)
         {
             Debug.Log("输入的cell count 不能被整除或者小于等于0");
-            return;
+            return false;
         }
 
         if (chunks != null)
@@ -62,6 +62,7 @@ public class HexGrid : MonoBehaviour
         chunkCountZ = cellCountZ / HexMetrics.chunkSizeZ;
         CreateChunks();
         CreateCells();
+        return true;
     }
 
 
@@ -191,6 +192,8 @@ public class HexGrid : MonoBehaviour
 
     public void Save(BinaryWriter writer)
     {
+        writer.Write(cellCountX);
+        writer.Write(cellCountZ);
         foreach (var item in cells)
         {
             item.Save(writer);
@@ -202,8 +205,23 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void Load(BinaryReader reader)
+    public void Load(BinaryReader reader,int header)
     {
+        int x=20, z=15;
+        if (header >= 1)
+        {
+            x = reader.ReadInt32();
+            z = reader.ReadInt32();
+        }
+
+        if (x != cellCountX || z != cellCountZ)
+        {
+            if (!CreateMap(x, z))
+            {
+                return;
+            }
+        }
+
         foreach (var item in cells)
         {
             item.Load(reader);
