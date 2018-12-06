@@ -12,19 +12,18 @@ public class NewMapUI : MonoBehaviour
     {
         hexGrid = _hexGrid;
 
-        MyU.BeginParent(transform);
-        MyU.GetCom(out Button newMapButton, "");
-        MyU.GetCom(out createNewMapBg, "Bg_CreateNewMap");
+        MyU.GetCom(out Button newMapButton,"Button_New", transform);
+        MyU.GetCom(out createNewMapBg, "Bg_CreateNewMap",transform);
         MyU.GetCom(out Button samallButton, "Button_Small", createNewMapBg);
         MyU.GetCom(out Button mediumButton, "Button_Medium", createNewMapBg);
         MyU.GetCom(out Button largeButton, "Button_Large", createNewMapBg);
         MyU.GetCom(out Button cancelButton, "Button_Cancel", createNewMapBg);
 
-        newMapButton.onClick.AddListener(() => ShowHideCreateNewMapBg(true));
-        cancelButton.onClick.AddListener(() => ShowHideCreateNewMapBg(false));
-        samallButton.onClick.AddListener(() => CreateNewMap(0));
-        mediumButton.onClick.AddListener(() => CreateNewMap(1));
-        largeButton.onClick.AddListener(() => CreateNewMap(2));
+        MyU.AddClick(newMapButton, ShowHideCreateNewMapBg, true);
+        MyU.AddClick(cancelButton, ShowHideCreateNewMapBg, false);
+        MyU.AddClick(samallButton, CreateNewMap, 0);
+        MyU.AddClick(mediumButton, CreateNewMap, 1);
+        MyU.AddClick(largeButton, CreateNewMap, 2);
     }
 
 

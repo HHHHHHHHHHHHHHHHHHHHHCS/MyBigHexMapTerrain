@@ -49,6 +49,8 @@ public class HexMapEditor : MonoBehaviour
         mainCam = Camera.main;
         hexGrid = GameObject.Find("HexGrid").GetComponent<HexGrid>();
 
+        #region Get Init Component
+
         MyU.BeginParent(transform.Find("LeftBg"));
         MyU.GetCom(out ToggleGroup colorToggleGroup, "ToggleGroup_Color");
         MyU.GetCom(out Toggle elevationToggle, "Toggle_Elevation");
@@ -71,37 +73,39 @@ public class HexMapEditor : MonoBehaviour
         MyU.GetCom(out Slider specialSlider, "Slider_Special");
         MyU.GetCom(out ToggleGroup walledToggleGroup, "ToggleGroup_Walled");
         MyU.GetCom(out Transform fileBg, "Bg_File");
-        MyU.GetCom(out saveLoadUI, "Button_SaveLoad", fileBg);
-        MyU.GetCom(out newMapUI, "Button_New", fileBg);
-
-        saveLoadUI.Init(hexGrid);
-        newMapUI.Init(hexGrid);
+        MyU.GetCom(out saveLoadUI, fileBg);
+        MyU.GetCom(out newMapUI, fileBg);
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
         var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
         var walledToggles = walledToggleGroup.GetComponentsInChildren<Toggle>();
 
-        elevationToggle.onValueChanged.AddListener(bo => applyElevation = bo);
-        elevationSlider.onValueChanged.AddListener(val => activeElevation = (int) val);
-        waterToggle.onValueChanged.AddListener(bo => applyWaterLevel = bo);
-        waterSlider.onValueChanged.AddListener(val => activeWaterLevel = (int) val);
-        brushSlider.onValueChanged.AddListener(val => brushSize = (int) val);
-        labelsToggle.onValueChanged.AddListener(ShowUI);
+        MyU.AddValChange(elevationToggle, bo => applyElevation = bo);
+        MyU.AddValChange(elevationSlider, val => activeElevation = (int) val);
+        MyU.AddValChange(waterToggle, bo => applyWaterLevel = bo);
+        MyU.AddValChange(waterSlider, val => activeWaterLevel = (int) val);
+        MyU.AddValChange(brushSlider, val => brushSize = (int) val);
+        MyU.AddValChange(labelsToggle, ShowUI);
 
-        urbanToggle.onValueChanged.AddListener(bo => applyUrbanLevel = bo);
-        urbanSlider.onValueChanged.AddListener(val => activeUrbanLevel = (int) val);
-        farmToggle.onValueChanged.AddListener(bo => applyFarmLevel = bo);
-        farmSlider.onValueChanged.AddListener(val => activeFarmLevel = (int) val);
-        specialToggle.onValueChanged.AddListener(bo => applySpecialLevel = bo);
-        specialSlider.onValueChanged.AddListener(val => activeSpecialLevel = (int) val);
-        plantToggle.onValueChanged.AddListener(bo => applyPlantLevel = bo);
-        plantSlider.onValueChanged.AddListener(val => activePlantLevel = (int) val);
+        MyU.AddValChange(urbanToggle, bo => applyUrbanLevel = bo);
+        MyU.AddValChange(urbanSlider, val => activeUrbanLevel = (int) val);
+        MyU.AddValChange(farmToggle, bo => applyFarmLevel = bo);
+        MyU.AddValChange(farmSlider, val => activeFarmLevel = (int) val);
+        MyU.AddValChange(specialToggle, bo => applySpecialLevel = bo);
+        MyU.AddValChange(specialSlider, val => activeSpecialLevel = (int) val);
+        MyU.AddValChange(plantToggle, bo => applyPlantLevel = bo);
+        MyU.AddValChange(plantSlider, val => activePlantLevel = (int) val);
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
         InitToggles(roadToggles, SetRoadMode);
         InitToggles(walledToggles, SetWalledMode);
+
+        #endregion
+
+        saveLoadUI.Init(hexGrid);
+        newMapUI.Init(hexGrid);
     }
 
 
@@ -300,5 +304,4 @@ public class HexMapEditor : MonoBehaviour
     {
         hexGrid.ShowUI(visible);
     }
-
 }
