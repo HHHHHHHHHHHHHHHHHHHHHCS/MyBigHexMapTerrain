@@ -5,7 +5,8 @@ using UnityEditor;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// 在2018.3.0b6有BUG 不能创建
+/// 在2018.2之后有BUG 不能创建
+/// 2018.2创建资源之后 拷贝回来
 /// </summary>
 public class TextureArrayWizard : ScriptableWizard
 {

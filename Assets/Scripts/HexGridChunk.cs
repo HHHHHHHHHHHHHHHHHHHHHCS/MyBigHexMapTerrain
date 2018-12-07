@@ -13,6 +13,7 @@ public class HexGridChunk : MonoBehaviour
     private static Color color2 = new Color(0, 1, 0);
     private static Color color3 = new Color(0, 0, 1);
 
+    //[FormerlySerializedAs("gridCanvas")] 这样可以改了变量名 但是还保持引用
     public Canvas gridCanvas;
     public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
     public HexFeatureManager features;
