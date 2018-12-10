@@ -9,9 +9,10 @@ using System;
 public class HexMesh : MonoBehaviour
 {
 
-    public bool useCollider, useColors, useUVCoordinates,useUV2Coordinates;
+    public bool useCollider, useColors, useUVCoordinates
+        ,useUV2Coordinates,useTerrainTypes;
 
-    [NonSerialized] List<Vector3> vertices;//顶点
+    [NonSerialized] List<Vector3> vertices,terrainTypes;//顶点,地形的类型
     [NonSerialized] List<Color> colors;//颜色
     [NonSerialized] List<Vector2> uvs,uv2s;//uv
     [NonSerialized] List<int> triangles;//mesh的需要的顶点所对应的index
@@ -48,6 +49,11 @@ public class HexMesh : MonoBehaviour
         {
             uv2s = ListPool<Vector2>.Get();
         }
+
+        if (useTerrainTypes)
+        {
+            terrainTypes = ListPool<Vector3>.Get();
+        }
         triangles = ListPool<int>.Get();
     }
 
@@ -72,6 +78,12 @@ public class HexMesh : MonoBehaviour
         {
             hexMesh.SetUVs(1, uv2s);
             ListPool<Vector2>.Add(uv2s);
+        }
+
+        if (useTerrainTypes)
+        {
+            hexMesh.SetUVs(2, terrainTypes);
+            ListPool<Vector3>.Add(terrainTypes);
         }
         hexMesh.SetTriangles(triangles, 0);
         ListPool<int>.Add(triangles);
@@ -306,5 +318,28 @@ public class HexMesh : MonoBehaviour
         uv2s.Add(new Vector2(uMax, vMin));
         uv2s.Add(new Vector2(uMin, vMax));
         uv2s.Add(new Vector2(uMax, vMax));
+    }
+
+    /// <summary>
+    /// 添加三角形地形的种类
+    /// </summary>
+    /// <param name="types"></param>
+    public void AddTriangleTerrainTypes(Vector3 types)
+    {
+        terrainTypes.Add(types);
+        terrainTypes.Add(types);
+        terrainTypes.Add(types);
+    }
+
+    /// <summary>
+    /// 添加四边形的地形的种类
+    /// </summary>
+    /// <param name="types"></param>
+    public void AddQuadTerrainTypes(Vector3 types)
+    {
+        terrainTypes.Add(types);
+        terrainTypes.Add(types);
+        terrainTypes.Add(types);
+        terrainTypes.Add(types);
     }
 }

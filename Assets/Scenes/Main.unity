@@ -806,12 +806,6 @@ MonoBehaviour:
     type: 3}
   noiseSource: {fileID: 2800000, guid: 87fc41f4cdb62654c83fb0bce85bf090, type: 3}
   seed: 2333
-  colors:
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 1, g: 0, b: 0, a: 1}
-  - {r: 0, g: 1, b: 0, a: 1}
-  - {r: 0, g: 0, b: 1, a: 1}
-  - {r: 1, g: 1, b: 0, a: 1}
 --- !u!1 &148903017
 GameObject:
   m_ObjectHideFlags: 0
@@ -1204,7 +1198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.4784314, g: 0.50980395, b: 0.16078432, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -2258,7 +2252,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.9843138, g: 0.86666673, b: 0.61960787, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -2368,7 +2362,7 @@ GameObject:
   - component: {fileID: 465601865}
   - component: {fileID: 465601866}
   m_Layer: 5
-  m_Name: Toggle_White
+  m_Name: Toggle_Grass
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2958,7 +2952,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 0, a: 1}
+  m_Color: {r: 0.70980394, g: 0.6509804, b: 0.5372549, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -5394,7 +5388,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &837044388
 GameObject:
   m_ObjectHideFlags: 0
@@ -5646,7 +5640,7 @@ GameObject:
   - component: {fileID: 870374081}
   - component: {fileID: 870374082}
   m_Layer: 5
-  m_Name: Toggle_Green
+  m_Name: Toggle_Sand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6757,7 +6751,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 1, a: 1}
+  m_Color: {r: 0.59607846, g: 0.42352945, b: 0.24313727, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -7856,7 +7850,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1144187511
 GameObject:
   m_ObjectHideFlags: 0
@@ -8095,7 +8089,7 @@ GameObject:
   - component: {fileID: 1173697286}
   - component: {fileID: 1173697287}
   m_Layer: 5
-  m_Name: Toggle_Blue
+  m_Name: Toggle_Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8570,7 +8564,7 @@ GameObject:
   - component: {fileID: 1254925324}
   - component: {fileID: 1254925325}
   m_Layer: 5
-  m_Name: Toggle_Yellow
+  m_Name: Toggle_Snow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9799,7 +9793,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1431673201
 GameObject:
   m_ObjectHideFlags: 0
@@ -12354,7 +12348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 0, a: 1}
+  m_Color: {r: 0.8941177, g: 0.87843144, b: 0.8470589, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -13203,7 +13197,7 @@ GameObject:
   - component: {fileID: 1885393783}
   - component: {fileID: 1885393784}
   m_Layer: 5
-  m_Name: Toggle_Red
+  m_Name: Toggle_Mud
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13769,7 +13763,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1976043398
 GameObject:
   m_ObjectHideFlags: 0

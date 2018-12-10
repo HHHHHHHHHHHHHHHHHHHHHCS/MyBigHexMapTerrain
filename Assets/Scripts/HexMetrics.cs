@@ -191,11 +191,6 @@ public sealed class HexMetrics
     private static HexHash[] hashGrid;
 
     /// <summary>
-    /// 格子的颜色
-    /// </summary>
-    public static Color[] colors;
-
-    /// <summary>
     /// 得到方向所对应的位置
     /// </summary>
     /// <param name="direction"></param>

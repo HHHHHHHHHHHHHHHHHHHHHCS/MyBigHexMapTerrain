@@ -86,12 +86,6 @@ public class HexCell : MonoBehaviour
         }
     }
 
-
-    public Color Color
-    {
-        get => HexMetrics.colors[terrainTypeIndex];
-    }
-
     public int TerrainTypeIndex
     {
         get => terrainTypeIndex;

@@ -87,6 +87,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1215870210}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -94,6 +95,7 @@ MonoBehaviour:
   useColors: 0
   useUVCoordinates: 1
   useUV2Coordinates: 0
+  useTerrainTypes: 0
 --- !u!1 &1477107259
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,7 +154,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: fdf3c318fd7cf624c9966a748a8476e0, type: 2}
+  - {fileID: 2100000, guid: 5e9b988a391eede48b52950e4303480d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -181,6 +183,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1477107259}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -188,6 +191,7 @@ MonoBehaviour:
   useColors: 1
   useUVCoordinates: 0
   useUV2Coordinates: 0
+  useTerrainTypes: 1
 --- !u!1 &1534497263
 GameObject:
   m_ObjectHideFlags: 0
@@ -255,6 +259,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1534497263}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -355,6 +360,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1794272822}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -362,6 +368,7 @@ MonoBehaviour:
   useColors: 0
   useUVCoordinates: 1
   useUV2Coordinates: 0
+  useTerrainTypes: 0
 --- !u!1 &1829700135
 GameObject:
   m_ObjectHideFlags: 0
@@ -449,6 +456,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1829700135}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -456,6 +464,7 @@ MonoBehaviour:
   useColors: 0
   useUVCoordinates: 1
   useUV2Coordinates: 0
+  useTerrainTypes: 0
 --- !u!1 &33692206722141558
 GameObject:
   m_ObjectHideFlags: 0
@@ -543,6 +552,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 33692206722141558}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -550,6 +560,7 @@ MonoBehaviour:
   useColors: 0
   useUVCoordinates: 0
   useUV2Coordinates: 0
+  useTerrainTypes: 0
 --- !u!1 &170924029849157245
 GameObject:
   m_ObjectHideFlags: 0
@@ -591,6 +602,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 170924029849157245}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 522db5e59ac92a8498f7b6dd2674cd70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -719,6 +731,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5060772226004054931}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -726,6 +739,7 @@ MonoBehaviour:
   useColors: 0
   useUVCoordinates: 1
   useUV2Coordinates: 0
+  useTerrainTypes: 0
 --- !u!1 &7583492751005083922
 GameObject:
   m_ObjectHideFlags: 0
@@ -774,6 +788,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7583492751005083922}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: b4b19ec313e510a41a48bbaefb6cd571, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -872,6 +887,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8671284465950563230}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: ffdf08fbaf2e77e44a24da6c4441bbd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -879,3 +895,4 @@ MonoBehaviour:
   useColors: 0
   useUVCoordinates: 1
   useUV2Coordinates: 1
+  useTerrainTypes: 0
