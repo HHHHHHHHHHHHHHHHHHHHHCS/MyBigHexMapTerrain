@@ -1210,4 +1210,5 @@ public class HexGridChunk : MonoBehaviour
                 , new Vector2(1, 0f), new Vector2(1.5f, -0.2f));
         }
     }
+
 }

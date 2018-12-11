@@ -17,6 +17,8 @@ public class HexMapEditor : MonoBehaviour
         No
     }
 
+    public Material terrainMaterial;
+
     public HexMapEditor Instance { private set; get; }
 
 
@@ -35,6 +37,7 @@ public class HexMapEditor : MonoBehaviour
     private OptionalToggle riverMode = OptionalToggle.Ignore;
     private OptionalToggle roadMode = OptionalToggle.Ignore;
     private OptionalToggle walledMode = OptionalToggle.Ignore;
+    private bool editMode;
 
     private bool isDrag;
     private HexDirection dragDirection;
@@ -57,10 +60,10 @@ public class HexMapEditor : MonoBehaviour
         MyU.GetCom(out Slider elevationSlider, "Slider_Elevation");
         MyU.GetCom(out Toggle waterToggle, "Toggle_Water");
         MyU.GetCom(out Slider waterSlider, "Slider_Water");
-        MyU.GetCom(out Slider brushSlider, "Slider_BrustSize");
-        MyU.GetCom(out Toggle labelsToggle, "Toggle_Labels");
         MyU.GetCom(out ToggleGroup riverToggleGroup, "ToggleGroup_River");
         MyU.GetCom(out ToggleGroup roadToggleGroup, "ToggleGroup_Road");
+        MyU.GetCom(out Slider brushSlider, "Slider_BrustSize");
+        MyU.GetCom(out Toggle gridToggle, "Toggle_Grid");
 
         MyU.BeginParent(transform.Find("RightBg"));
         MyU.GetCom(out Toggle urbanToggle, "Toggle_Urban");
@@ -75,6 +78,7 @@ public class HexMapEditor : MonoBehaviour
         MyU.GetCom(out Transform fileBg, "Bg_File");
         MyU.GetCom(out saveLoadUI, fileBg);
         MyU.GetCom(out newMapUI, fileBg);
+        MyU.GetCom(out Toggle editModeToggle, "Toggle_EditMode");
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
@@ -86,7 +90,7 @@ public class HexMapEditor : MonoBehaviour
         MyU.AddValChange(waterToggle, bo => applyWaterLevel = bo);
         MyU.AddValChange(waterSlider, val => activeWaterLevel = (int) val);
         MyU.AddValChange(brushSlider, val => brushSize = (int) val);
-        MyU.AddValChange(labelsToggle, ShowUI);
+        MyU.AddValChange(gridToggle, ShowGrid);
 
         MyU.AddValChange(urbanToggle, bo => applyUrbanLevel = bo);
         MyU.AddValChange(urbanSlider, val => activeUrbanLevel = (int) val);
@@ -96,6 +100,7 @@ public class HexMapEditor : MonoBehaviour
         MyU.AddValChange(specialSlider, val => activeSpecialLevel = (int) val);
         MyU.AddValChange(plantToggle, bo => applyPlantLevel = bo);
         MyU.AddValChange(plantSlider, val => activePlantLevel = (int) val);
+        MyU.AddValChange(editModeToggle, SetEditMode);
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
@@ -106,6 +111,7 @@ public class HexMapEditor : MonoBehaviour
 
         saveLoadUI.Init(hexGrid);
         newMapUI.Init(hexGrid);
+        SetEditMode(editModeToggle.isOn);
     }
 
 
@@ -137,7 +143,14 @@ public class HexMapEditor : MonoBehaviour
                 isDrag = false;
             }
 
-            EditCells(currentCell);
+            if (editMode)
+            {
+                EditCells(currentCell);
+            }
+            else
+            {
+                hexGrid.FindDistancesTo(currentCell);
+            }
             previousCell = currentCell;
         }
         else
@@ -300,8 +313,27 @@ public class HexMapEditor : MonoBehaviour
         isDrag = false;
     }
 
-    public void ShowUI(bool visible)
+
+    /// <summary>
+    /// 显示格子
+    /// </summary>
+    /// <param name="visible"></param>
+    public void ShowGrid(bool visible)
     {
-        hexGrid.ShowUI(visible);
+        const string key = "GRID_ON";
+        if (visible)
+        {
+            terrainMaterial.EnableKeyword(key);
+        }
+        else
+        {
+            terrainMaterial.DisableKeyword(key);
+        }
+    }
+
+    public void SetEditMode(bool val)
+    {
+        editMode = val;
+        hexGrid.ShowUI(!val);
     }
 }

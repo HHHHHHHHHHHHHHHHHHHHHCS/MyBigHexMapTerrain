@@ -8,12 +8,22 @@ using UnityEngine;
 [System.Serializable]
 public struct HexCoordinates
 {
-    [SerializeField]
-    private int x, y, z;
+    [SerializeField] private int x, y, z;
 
-    public int X { get { return x; } }
-    public int Y { get { return y; } }
-    public int Z { get { return z; } }
+    public int X
+    {
+        get { return x; }
+    }
+
+    public int Y
+    {
+        get { return y; }
+    }
+
+    public int Z
+    {
+        get { return z; }
+    }
 
     public HexCoordinates(int x, int z)
     {
@@ -65,13 +75,22 @@ public struct HexCoordinates
         return new HexCoordinates(iX, iZ);
     }
 
+    public int DistanceTo(HexCoordinates other)
+    {
+        int _x = x < other.x ? other.x - x : x - other.x;
+        int _y = y < other.y ? other.y - y : y - other.y;
+        int _z = z < other.z ? other.z - z : z - other.z;
+        //除以2 是因为x+y+z=0 但是我们这边取abs 了 所以除以2
+        return (_x + _y + _z) / 2;
+    }
+
     public override string ToString()
     {
-        return string.Format("({0},{1},{2})", X, Y, Z);
+        return $"({X},{Y},{Z})";
     }
 
     public string ToStringOnSeparateLines()
     {
-        return string.Format("{0}\n{1}\n{2}", X, Y, Z);
+        return $"{X}\n{Y}\n{Z}";
     }
 }

@@ -10,6 +10,8 @@ using UnityEngine.UI;
 /// </summary>
 public class HexGrid : MonoBehaviour
 {
+    private static WaitForSeconds delay = new WaitForSeconds(1 / 60f);
+
     public int cellCountX = 20, cellCountZ = 15; //一共有几个六边形
     public HexCell cellPrefab;
     public HexGridChunk chunkPrefab;
@@ -20,6 +22,7 @@ public class HexGrid : MonoBehaviour
     private HexCell[] cells;
     private HexGridChunk[] chunks;
     private int chunkCountX, chunkCountZ; //有几个地形块
+    private Coroutine coroutine;
 
     private void Awake()
     {
@@ -53,6 +56,7 @@ public class HexGrid : MonoBehaviour
                 Destroy(t.gameObject);
             }
         }
+
         cellCountX = x;
         cellCountZ = z;
         chunkCountX = cellCountX / HexMetrics.chunkSizeX;
@@ -134,7 +138,7 @@ public class HexGrid : MonoBehaviour
         Text label = Instantiate(cellLabelPrefab);
         label.rectTransform.anchoredPosition
             = new Vector2(position.x, position.z);
-        label.text = cell.coordinates.ToStringOnSeparateLines();
+        //label.text = cell.coordinates.ToStringOnSeparateLines();
         cell.uiRect = label.rectTransform;
 
         cell.Elevation = 0;
@@ -202,9 +206,14 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void Load(BinaryReader reader,int header)
+    public void Load(BinaryReader reader, int header)
     {
-        int x=20, z=15;
+        if (coroutine != null)
+        {
+            StopCoroutine(coroutine);
+        }
+
+        int x = 20, z = 15;
         if (header >= 1)
         {
             x = reader.ReadInt32();
@@ -229,5 +238,102 @@ public class HexGrid : MonoBehaviour
             item.RefreshPosition();
             item.Refresh();
         }
+    }
+
+    public void FindDistancesTo(HexCell cell)
+    {
+        if (coroutine != null)
+        {
+            StopCoroutine(coroutine);
+        }
+
+        coroutine = StartCoroutine(Search(cell));
+    }
+
+    private IEnumerator Search(HexCell cell)
+    {
+        foreach (var nowCell in cells)
+        {
+            nowCell.Distance = int.MaxValue;
+        }
+
+        var frontier = new List<HexCell>();
+        cell.Distance = 0;
+        AddSortList(ref frontier, cell);
+
+        while (frontier.Count > 0)
+        {
+            yield return delay;
+            var current = frontier[0];
+            frontier.RemoveAt(0);
+            for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
+            {
+                var neighbor = current.GetNeighbor(d);
+                if (neighbor == null)
+                {
+                    continue;
+                }
+
+                if (neighbor.IsUnderwater)
+                {
+                    continue;
+                }
+
+                HexEdgeType edgeType = current.GetEdgeType(neighbor);
+                if (edgeType == HexEdgeType.Cliff)
+                {
+                    continue;
+                }
+
+                var distance = current.Distance;
+                if (current.HasRoadThroughEdge(d))
+                {
+                    distance += 1;
+                }
+                else if (current.Walled!=neighbor.Walled)
+                {
+                    continue;
+                }
+                else
+                {
+                    distance += edgeType == HexEdgeType.Flat ? 5 : 10;
+                    distance += neighbor.UrbanLevel + neighbor.FarmLevel
+                                                    + neighbor.PlantLevel;
+                }
+                                  
+                if (neighbor.Distance == int.MaxValue)
+                {
+                    neighbor.Distance = distance;
+                    AddSortList(ref frontier, neighbor);
+                    //frontier.Sort((x, y) => x.Distance.CompareTo(y.Distance));
+                }
+                else if (neighbor.Distance > distance)
+                {
+                    neighbor.Distance = distance;
+                }
+            }
+        }
+
+        coroutine = null;
+    }
+
+    /// <summary>
+    /// 优化排序算法
+    /// 理论上还能通过 二分法在优化
+    /// </summary>
+    /// <param name="list"></param>
+    /// <param name="cell"></param>
+    private void AddSortList(ref List<HexCell> list, HexCell cell)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i].Distance > cell.Distance)
+            {
+                list.Insert(i, cell);
+                return;
+            }
+        }
+
+        list.Add(cell);
     }
 }

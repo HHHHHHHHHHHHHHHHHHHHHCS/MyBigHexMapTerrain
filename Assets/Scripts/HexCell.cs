@@ -10,6 +10,8 @@ using UnityEngine.UI;
 /// </summary>
 public class HexCell : MonoBehaviour
 {
+    private const string nullString = "";
+
     public HexCoordinates coordinates;
     public RectTransform uiRect;
     public HexGridChunk chunk;
@@ -24,6 +26,7 @@ public class HexCell : MonoBehaviour
     private int urbanLevel, farmLevel, plantLevel;
     private bool walled;
     private int specialIndex;
+    private int distance;
 
     public bool HasIncomingRiver
     {
@@ -49,15 +52,9 @@ public class HexCell : MonoBehaviour
         private set => outgoingRiver = value;
     }
 
-    public bool HasRiver
-    {
-        get => HasIncomingRiver || HasOutgoingRiver;
-    }
+    public bool HasRiver => HasIncomingRiver || HasOutgoingRiver;
 
-    public bool HasRiverBeginOrEnd
-    {
-        get => HasIncomingRiver != HasOutgoingRiver;
-    }
+    public bool HasRiverBeginOrEnd => HasIncomingRiver != HasOutgoingRiver;
 
     public int Elevation
     {
@@ -105,17 +102,11 @@ public class HexCell : MonoBehaviour
         get => transform.localPosition;
     }
 
-    public float StreamBedY
-    {
-        get => (elevation + HexMetrics.streamBedElevationOffset)
-               * HexMetrics.elevationStep;
-    }
+    public float StreamBedY => (elevation + HexMetrics.streamBedElevationOffset)
+                               * HexMetrics.elevationStep;
 
-    public float RiverSurfaceY
-    {
-        get => (elevation + HexMetrics.waterElevationOffset)
-               * HexMetrics.elevationStep;
-    }
+    public float RiverSurfaceY => (elevation + HexMetrics.waterElevationOffset)
+                                  * HexMetrics.elevationStep;
 
     public bool HasRoads
     {
@@ -154,16 +145,10 @@ public class HexCell : MonoBehaviour
         }
     }
 
-    public bool IsUnderwater
-    {
-        get => waterLevel > elevation;
-    }
+    public bool IsUnderwater => waterLevel > elevation;
 
-    public float WaterSurfaceY
-    {
-        get => (waterLevel + HexMetrics.waterElevationOffset)
-               * HexMetrics.elevationStep;
-    }
+    public float WaterSurfaceY => (waterLevel + HexMetrics.waterElevationOffset)
+                                  * HexMetrics.elevationStep;
 
     public int UrbanLevel
     {
@@ -232,9 +217,24 @@ public class HexCell : MonoBehaviour
         }
     }
 
-    public bool IsSpecial
+    public bool IsSpecial => specialIndex > 0;
+
+    public int Distance
     {
-        get => specialIndex > 0;
+        get => distance;
+
+        set
+        {
+            distance = value;
+            UpdateDistanceLabel();
+        }
+    }
+
+
+    private void UpdateDistanceLabel()
+    {
+        Text label = uiRect.GetComponent<Text>();
+        label.text = distance == int.MaxValue ? nullString : distance.ToString();
     }
 
     public void RefreshPosition()
@@ -322,17 +322,31 @@ public class HexCell : MonoBehaviour
         chunk.Refresh();
     }
 
+    /// <summary>
+    /// 是否有河流经过这个方向
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public bool HasRiverThroughEdge(HexDirection direction)
     {
         return HasIncomingRiver && IncomingRiver == direction
                || HasOutgoingRiver && OutgoingRiver == direction;
     }
 
+    /// <summary>
+    /// 是否有路经过这个方向
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
     public bool HasRoadThroughEdge(HexDirection direction)
     {
         return roads[(int) direction];
     }
 
+    /// <summary>
+    /// 在某个方向添加路
+    /// </summary>
+    /// <param name="direction"></param>
     public void AddRoad(HexDirection direction)
     {
         if (!roads[(int) direction] && !HasRiverThroughEdge(direction)
@@ -343,6 +357,11 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 在某个方向设置路是否有
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="state"></param>
     private void SetRoad(int index, bool state)
     {
         roads[index] = state;
@@ -351,6 +370,9 @@ public class HexCell : MonoBehaviour
         RefreshSelfOnly();
     }
 
+    /// <summary>
+    /// 移除全部的路
+    /// </summary>
     public void RemoveRoads()
     {
         for (var i = 0; i < neighbors.Length; i++)
@@ -365,6 +387,9 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 移除出去的河流
+    /// </summary>
     public void RemoveOutgoingRiver()
     {
         if (!HasOutgoingRiver)
@@ -380,6 +405,9 @@ public class HexCell : MonoBehaviour
         neighbor.RefreshSelfOnly();
     }
 
+    /// <summary>
+    /// 移除进来的河流
+    /// </summary>
     public void RemoveIncomingRiver()
     {
         if (!HasIncomingRiver)
@@ -395,12 +423,19 @@ public class HexCell : MonoBehaviour
         neighbor.RefreshSelfOnly();
     }
 
+    /// <summary>
+    /// 移除进来和出去的河(即全部的河流)
+    /// </summary>
     public void RemoveRiver()
     {
         RemoveOutgoingRiver();
         RemoveIncomingRiver();
     }
 
+    /// <summary>
+    /// 设置出去的河流
+    /// </summary>
+    /// <param name="direction"></param>
     public void SetOutgoingRiver(HexDirection direction)
     {
         if (HasOutgoingRiver && OutgoingRiver == direction)
@@ -450,16 +485,19 @@ public class HexCell : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// 保存
+    /// </summary>
+    /// <param name="writer"></param>
     public void Save(BinaryWriter writer)
     {
-        writer.Write((byte)terrainTypeIndex);
-        writer.Write((byte)elevation);
-        writer.Write((byte)waterLevel);
-        writer.Write((byte)urbanLevel);
-        writer.Write((byte)farmLevel);
-        writer.Write((byte)plantLevel);
-        writer.Write((byte)specialIndex);
+        writer.Write((byte) terrainTypeIndex);
+        writer.Write((byte) elevation);
+        writer.Write((byte) waterLevel);
+        writer.Write((byte) urbanLevel);
+        writer.Write((byte) farmLevel);
+        writer.Write((byte) plantLevel);
+        writer.Write((byte) specialIndex);
         writer.Write(walled);
         if (hasIncomingRiver)
         {
@@ -469,14 +507,16 @@ public class HexCell : MonoBehaviour
         {
             writer.Write((byte) 0);
         }
+
         if (hasOutgoingRiver)
         {
-            writer.Write((byte)(outgoingRiver + 128));
+            writer.Write((byte) (outgoingRiver + 128));
         }
         else
         {
-            writer.Write((byte)0);
+            writer.Write((byte) 0);
         }
+
         writer.Write(hasIncomingRiver);
         writer.Write((byte) incomingRiver);
         writer.Write(hasOutgoingRiver);
@@ -489,9 +529,14 @@ public class HexCell : MonoBehaviour
                 roadFlags |= 1 << i;
             }
         }
+
         writer.Write((byte) roadFlags);
     }
 
+    /// <summary>
+    /// 读取
+    /// </summary>
+    /// <param name="reader"></param>
     public void Load(BinaryReader reader)
     {
         terrainTypeIndex = reader.ReadByte();
@@ -523,6 +568,7 @@ public class HexCell : MonoBehaviour
         {
             hasOutgoingRiver = false;
         }
+
         int roadFlags = reader.ReadByte();
         for (var i = 0; i < roads.Length; i++)
         {
