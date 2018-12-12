@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -18,6 +19,7 @@ public class HexMapEditor : MonoBehaviour
     }
 
     public Material terrainMaterial;
+
 
     public HexMapEditor Instance { private set; get; }
 
@@ -41,7 +43,7 @@ public class HexMapEditor : MonoBehaviour
 
     private bool isDrag;
     private HexDirection dragDirection;
-    private HexCell previousCell;
+    private HexCell previousCell, searchFromCell, searchToCell;
 
     private NewMapUI newMapUI;
     private SaveLoadUI saveLoadUI;
@@ -147,10 +149,33 @@ public class HexMapEditor : MonoBehaviour
             {
                 EditCells(currentCell);
             }
-            else
+            else if (Input.GetKey(KeyCode.LeftControl) 
+                     && searchFromCell != currentCell)
             {
-                hexGrid.FindDistancesTo(currentCell);
+                if (searchFromCell)
+                {
+                    searchFromCell.DisableHighlight();
+                }
+
+                searchFromCell = currentCell;
+                searchFromCell.EnableHighlight(hexGrid.searchFromColor);
             }
+            else if (searchFromCell != currentCell)
+            {
+                if (searchToCell)
+                {
+                    searchToCell.DisableHighlight();
+                }
+
+                searchToCell = currentCell;
+                searchToCell.EnableHighlight(hexGrid.searchToColor);
+            }
+
+            if (searchFromCell && searchToCell)
+            {
+                hexGrid.FindPath(searchFromCell, searchToCell);
+            }
+
             previousCell = currentCell;
         }
         else

@@ -16,6 +16,7 @@ public class HexCell : MonoBehaviour
     public RectTransform uiRect;
     public HexGridChunk chunk;
 
+
     private int terrainTypeIndex;
     private HexCell[] neighbors = new HexCell[6];
     private int elevation = int.MinValue;
@@ -230,6 +231,25 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 寻路的父节点
+    /// </summary>
+    public HexCell PathFrom { get; set; }
+
+    /// <summary>
+    /// A*寻路的权重值
+    /// </summary>
+    public int SearchHeuristic { get; set; }
+
+    /// <summary>
+    /// A*寻路的排序值
+    /// </summary>
+    public int SearchPrioty => distance + SearchHeuristic;
+
+    /// <summary>
+    /// A*寻路相同权值的队列储存
+    /// </summary>
+    public HexCell NextWithSamePriority { get; set; }
 
     private void UpdateDistanceLabel()
     {
@@ -483,6 +503,19 @@ public class HexCell : MonoBehaviour
         {
             RemoveIncomingRiver();
         }
+    }
+
+    public void DisableHighlight()
+    {
+        Image highlight = uiRect.GetChild(0).GetComponent<Image>();
+        highlight.enabled = false;
+    }
+
+    public void EnableHighlight(Color color)
+    {
+        Image highlight = uiRect.GetChild(0).GetComponent<Image>();
+        highlight.color = color;
+        highlight.enabled = true;
     }
 
     /// <summary>

@@ -12,6 +12,8 @@ public class HexGrid : MonoBehaviour
 {
     private static WaitForSeconds delay = new WaitForSeconds(1 / 60f);
 
+    public Color searchFromColor = Color.blue
+        , searchToColor = Color.red, searchPathColor = Color.white;
     public int cellCountX = 20, cellCountZ = 15; //一共有几个六边形
     public HexCell cellPrefab;
     public HexGridChunk chunkPrefab;
@@ -23,6 +25,7 @@ public class HexGrid : MonoBehaviour
     private HexGridChunk[] chunks;
     private int chunkCountX, chunkCountZ; //有几个地形块
     private Coroutine coroutine;
+    private HexCellPriorityQueue searchFrontier;
 
     private void Awake()
     {
@@ -240,32 +243,55 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void FindDistancesTo(HexCell cell)
+    public void FindPath(HexCell fromCell, HexCell toCell)
     {
         if (coroutine != null)
         {
             StopCoroutine(coroutine);
         }
 
-        coroutine = StartCoroutine(Search(cell));
+        coroutine = StartCoroutine(Search(fromCell, toCell));
     }
 
-    private IEnumerator Search(HexCell cell)
+    private IEnumerator Search(HexCell fromCell, HexCell toCell)
     {
+        if (searchFrontier == null)
+        {
+            searchFrontier = new HexCellPriorityQueue();
+        }
+        else
+        {
+            searchFrontier.Clear();
+        }
+
         foreach (var nowCell in cells)
         {
             nowCell.Distance = int.MaxValue;
+            if (nowCell != fromCell && nowCell != toCell)
+            {
+                nowCell.DisableHighlight();
+            }
         }
 
-        var frontier = new List<HexCell>();
-        cell.Distance = 0;
-        AddSortList(ref frontier, cell);
+        fromCell.Distance = 0;
+        searchFrontier.Enqueue(fromCell);
 
-        while (frontier.Count > 0)
+        while (searchFrontier.Count > 0)
         {
             yield return delay;
-            var current = frontier[0];
-            frontier.RemoveAt(0);
+            var current = searchFrontier.Dequeue();
+
+            if (current == toCell)
+            {
+                current = current.PathFrom;
+                while (current != fromCell)
+                {
+                    current.EnableHighlight(searchPathColor);
+                    current = current.PathFrom;
+                }
+                break;
+            }
+
             for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
                 var neighbor = current.GetNeighbor(d);
@@ -290,7 +316,7 @@ public class HexGrid : MonoBehaviour
                 {
                     distance += 1;
                 }
-                else if (current.Walled!=neighbor.Walled)
+                else if (current.Walled != neighbor.Walled)
                 {
                     continue;
                 }
@@ -300,40 +326,25 @@ public class HexGrid : MonoBehaviour
                     distance += neighbor.UrbanLevel + neighbor.FarmLevel
                                                     + neighbor.PlantLevel;
                 }
-                                  
+
                 if (neighbor.Distance == int.MaxValue)
                 {
                     neighbor.Distance = distance;
-                    AddSortList(ref frontier, neighbor);
-                    //frontier.Sort((x, y) => x.Distance.CompareTo(y.Distance));
+                    neighbor.PathFrom = current;
+                    neighbor.SearchHeuristic = neighbor.coordinates
+                        .DistanceTo(toCell.coordinates);
+                    searchFrontier.Enqueue(neighbor);
                 }
                 else if (neighbor.Distance > distance)
                 {
+                    int oldPriority = neighbor.SearchPrioty;
                     neighbor.Distance = distance;
+                    neighbor.PathFrom = current;
+                    searchFrontier.Change(neighbor, oldPriority);
                 }
             }
         }
 
         coroutine = null;
-    }
-
-    /// <summary>
-    /// 优化排序算法
-    /// 理论上还能通过 二分法在优化
-    /// </summary>
-    /// <param name="list"></param>
-    /// <param name="cell"></param>
-    private void AddSortList(ref List<HexCell> list, HexCell cell)
-    {
-        for (int i = 0; i < list.Count; i++)
-        {
-            if (list[i].Distance > cell.Distance)
-            {
-                list.Insert(i, cell);
-                return;
-            }
-        }
-
-        list.Add(cell);
     }
 }
