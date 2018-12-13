@@ -135,6 +135,7 @@ public class HexMapEditor : MonoBehaviour
         Ray inputRay = mainCam.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(inputRay, out RaycastHit hit))
         {
+            bool searchChange = false;
             HexCell currentCell = hexGrid.GetCell(hit.point);
             if (previousCell && previousCell != currentCell)
             {
@@ -149,8 +150,8 @@ public class HexMapEditor : MonoBehaviour
             {
                 EditCells(currentCell);
             }
-            else if (Input.GetKey(KeyCode.LeftControl) 
-                     && searchFromCell != currentCell)
+            else if (Input.GetKey(KeyCode.LeftControl)
+                     && searchFromCell != currentCell && searchToCell != currentCell)
             {
                 if (searchFromCell)
                 {
@@ -159,8 +160,9 @@ public class HexMapEditor : MonoBehaviour
 
                 searchFromCell = currentCell;
                 searchFromCell.EnableHighlight(hexGrid.searchFromColor);
+                searchChange = true;
             }
-            else if (searchFromCell != currentCell)
+            else if (searchFromCell != currentCell && searchToCell != currentCell)
             {
                 if (searchToCell)
                 {
@@ -169,11 +171,12 @@ public class HexMapEditor : MonoBehaviour
 
                 searchToCell = currentCell;
                 searchToCell.EnableHighlight(hexGrid.searchToColor);
+                searchChange = true;
             }
 
-            if (searchFromCell && searchToCell)
+            if (searchFromCell && searchToCell && searchChange)
             {
-                hexGrid.FindPath(searchFromCell, searchToCell);
+                hexGrid.FindPath(searchFromCell, searchToCell, 24);
             }
 
             previousCell = currentCell;

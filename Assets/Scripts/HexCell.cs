@@ -27,7 +27,6 @@ public class HexCell : MonoBehaviour
     private int urbanLevel, farmLevel, plantLevel;
     private bool walled;
     private int specialIndex;
-    private int distance;
 
     public bool HasIncomingRiver
     {
@@ -220,16 +219,9 @@ public class HexCell : MonoBehaviour
 
     public bool IsSpecial => specialIndex > 0;
 
-    public int Distance
-    {
-        get => distance;
+    public int Distance { get; set; }
 
-        set
-        {
-            distance = value;
-            UpdateDistanceLabel();
-        }
-    }
+    public int SearchPhase { get; set; }
 
     /// <summary>
     /// 寻路的父节点
@@ -244,7 +236,7 @@ public class HexCell : MonoBehaviour
     /// <summary>
     /// A*寻路的排序值
     /// </summary>
-    public int SearchPrioty => distance + SearchHeuristic;
+    public int SearchPrioty => Distance + SearchHeuristic;
 
     /// <summary>
     /// A*寻路相同权值的队列储存
@@ -254,7 +246,7 @@ public class HexCell : MonoBehaviour
     private void UpdateDistanceLabel()
     {
         Text label = uiRect.GetComponent<Text>();
-        label.text = distance == int.MaxValue ? nullString : distance.ToString();
+        label.text = Distance == int.MaxValue ? nullString : Distance.ToString();
     }
 
     public void RefreshPosition()
@@ -516,6 +508,12 @@ public class HexCell : MonoBehaviour
         Image highlight = uiRect.GetChild(0).GetComponent<Image>();
         highlight.color = color;
         highlight.enabled = true;
+    }
+
+    public void SetLabel(string text)
+    {
+        Text label = uiRect.GetComponent<Text>();
+        label.text = text;
     }
 
     /// <summary>
