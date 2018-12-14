@@ -28,6 +28,7 @@ public class HexCell : MonoBehaviour
     private bool walled;
     private int specialIndex;
 
+
     public bool HasIncomingRiver
     {
         get => hasIncomingRiver;
@@ -125,9 +126,7 @@ public class HexCell : MonoBehaviour
     }
 
     public HexDirection RiverBeginOrEndDirection
-    {
-        get => HasIncomingRiver ? incomingRiver : outgoingRiver;
-    }
+        => HasIncomingRiver ? incomingRiver : outgoingRiver;
 
     public int WaterLevel
     {
@@ -243,6 +242,8 @@ public class HexCell : MonoBehaviour
     /// </summary>
     public HexCell NextWithSamePriority { get; set; }
 
+    public HexUnit Unit { get; set; }
+
     private void UpdateDistanceLabel()
     {
         Text label = uiRect.GetComponent<Text>();
@@ -323,6 +324,11 @@ public class HexCell : MonoBehaviour
                     neighbor.chunk.Refresh();
                 }
             }
+
+            if (Unit)
+            {
+                Unit.ValidateLocation();
+            }
         }
     }
 
@@ -332,6 +338,10 @@ public class HexCell : MonoBehaviour
     private void RefreshSelfOnly()
     {
         chunk.Refresh();
+        if (Unit)
+        {
+            Unit.ValidateLocation();
+        }
     }
 
     /// <summary>

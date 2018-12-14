@@ -1,49 +1,60 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-///     地形的manager
-///     有全部的HexGridChunk 和 HexCell
+/// 地形的manager
+/// 有全部的HexGridChunk 和 HexCell
 /// </summary>
 public class HexGrid : MonoBehaviour
 {
+    public Texture2D noiseSource;
     public int cellCountX = 20, cellCountZ = 15; //一共有几个六边形
-    public Text cellLabelPrefab;
+    public HexGridChunk chunkPrefab;
     public HexCell cellPrefab;
+    public Text cellLabelPrefab;
+    public HexUnit unitPrefab;
+    public Color searchFromColor = Color.blue, searchToColor = Color.red, searchPathColor = Color.white;
 
     private HexCell[] cells;
-
     private int chunkCountX, chunkCountZ; //有几个地形块
-    public HexGridChunk chunkPrefab;
     private HexGridChunk[] chunks;
     private bool currentPathExists;
     private HexCell currentPathFrom, currentPathTo;
+    private List<HexUnit> units = new List<HexUnit>();
 
-    public Texture2D noiseSource;
     //private static WaitForSeconds delay = new WaitForSeconds(1 / 60f);
-
-    public Color searchFromColor = Color.blue, searchToColor = Color.red, searchPathColor = Color.white;
-
     //private Coroutine coroutine;
+
     private HexCellPriorityQueue searchFrontier;
     private int searchFrontierPhase;
     public int seed;
 
+    public bool HasPath => currentPathExists;
+
     private void Awake()
     {
-        HexMetrics.noiseSource = noiseSource;
-        HexMetrics.InitializeHashGrid(seed);
+        Init();
         CreateMap(cellCountX, cellCountZ);
     }
 
+    /// <summary>
+    /// 基本不会出现
+    /// </summary>
     private void OnEnable()
     {
         if (!HexMetrics.noiseSource)
         {
-            HexMetrics.noiseSource = noiseSource;
-            HexMetrics.InitializeHashGrid(seed);
+            Init();
         }
+    }
+
+    private void Init()
+    {
+        HexUnit.unitPrefab = unitPrefab;
+        HexMetrics.noiseSource = noiseSource;
+        HexMetrics.InitializeHashGrid(seed);
     }
 
     public bool CreateMap(int x, int z)
@@ -55,10 +66,15 @@ public class HexGrid : MonoBehaviour
             return false;
         }
 
-        ClearPath();
+        ClearMap();
         if (chunks != null)
-            foreach (var t in chunks)
-                Destroy(t.gameObject);
+        {
+            foreach (var item in chunks)
+            {
+                Destroy(item.gameObject);
+            }
+        }
+
 
         cellCountX = x;
         cellCountZ = z;
@@ -165,9 +181,23 @@ public class HexGrid : MonoBehaviour
         return cells[index];
     }
 
+
+    public HexCell GetCell(Ray ray)
+    {
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            return GetCell(hit.point);
+        }
+
+        return null;
+    }
+
     public void ShowUI(bool visible)
     {
-        for (var i = 0; i < chunks.Length; i++) chunks[i].ShowUI(visible);
+        for (var i = 0; i < chunks.Length; i++)
+        {
+            chunks[i].ShowUI(visible);
+        }
     }
 
     #region SaveLoad
@@ -179,6 +209,12 @@ public class HexGrid : MonoBehaviour
         foreach (var item in cells) item.Save(writer);
 
         foreach (var item in cells) item.Refresh();
+
+        writer.Write(units.Count);
+        foreach (var item in units)
+        {
+            item.Save(writer);
+        }
     }
 
     public void Load(BinaryReader reader, int header)
@@ -187,9 +223,9 @@ public class HexGrid : MonoBehaviour
         //{
         //    StopCoroutine(coroutine);
         //}
-        ClearPath();
+
         int x = 20, z = 15;
-        if (header >= 1)
+        if (header >= SaveLoadModule.version_1)
         {
             x = reader.ReadInt32();
             z = reader.ReadInt32();
@@ -206,6 +242,21 @@ public class HexGrid : MonoBehaviour
             item.RefreshPosition();
             item.Refresh();
         }
+
+        if (header >= SaveLoadModule.version_2)
+        {
+            int unitCount = reader.ReadInt32();
+            for (int i = 0; i < unitCount; i++)
+            {
+                HexUnit.Load(reader, this);
+            }
+        }
+    }
+
+    public void ClearMap()
+    {
+        ClearPath();
+        ClearUnits();
     }
 
     #endregion
@@ -242,12 +293,12 @@ public class HexGrid : MonoBehaviour
 
         /*foreach (var nowCell in cells)
         {
-            if (nowCell != fromCell && nowCell != toCell)
-            {
-                nowCell.DisableHighlight();
-            }
-
-            nowCell.SetLabel(null);
+        if (nowCell != fromCell && nowCell != toCell)
+        {
+        nowCell.DisableHighlight();
+        }
+    
+        nowCell.SetLabel(null);
         }*/
 
         fromCell.SearchPhase = searchFrontierPhase;
@@ -271,19 +322,22 @@ public class HexGrid : MonoBehaviour
                     || neighbor.SearchPhase > searchFrontierPhase)
                     continue;
 
-                if (neighbor.IsUnderwater) continue;
+                if (neighbor.IsUnderwater || neighbor.Unit
+                    || current.Walled != neighbor.Walled)
+                {
+                    continue;
+                }
 
                 var edgeType = current.GetEdgeType(neighbor);
-                if (edgeType == HexEdgeType.Cliff) continue;
+                if (edgeType == HexEdgeType.Cliff)
+                {
+                    continue;
+                }
 
                 var moveCost = 0;
                 if (current.HasRoadThroughEdge(d))
                 {
                     moveCost = 1;
-                }
-                else if (current.Walled != neighbor.Walled)
-                {
-                    continue;
                 }
                 else
                 {
@@ -337,7 +391,7 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    private void ClearPath()
+    public void ClearPath()
     {
         if (currentPathExists)
         {
@@ -354,6 +408,34 @@ public class HexGrid : MonoBehaviour
         }
 
         currentPathFrom = currentPathTo = null;
+    }
+
+    #endregion
+
+    #region Units
+
+    private void ClearUnits()
+    {
+        foreach (var item in units)
+        {
+            item.Die();
+        }
+
+        units.Clear();
+    }
+
+    public void AddUnit(HexUnit unit, HexCell location, float orientation)
+    {
+        units.Add(unit);
+        unit.transform.SetParent(transform, false);
+        unit.Location = location;
+        unit.Orientation = orientation;
+    }
+
+    public void RemoveUnit(HexUnit unit)
+    {
+        units.Remove(unit);
+        unit.Die();
     }
 
     #endregion

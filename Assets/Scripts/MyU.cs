@@ -23,7 +23,7 @@ public static class MyU
 
         for (int i = 0; i < objArr.Length; i++)
         {
-            sb.Append(objArr[i].ToString());
+            sb.Append(objArr[i] == null ? "Null" : objArr[i].ToString());
             if (i != objArr.Length - 1)
             {
                 sb.Append(spiltStr);
@@ -38,6 +38,11 @@ public static class MyU
 
     #region Get Component
 
+    /*
+     * 别用GetCom 寻找Gameobject 用 GetGo
+     * GetGoG GetComG 是总Gameobject 为parent 开始find
+     */
+
     private static Transform root;
 
     public static void BeginParent(Transform parent)
@@ -45,9 +50,41 @@ public static class MyU
         root = parent;
     }
 
+    public static void BeginParent(Component parent)
+    {
+        root = parent.transform;
+    }
+
+    public static void BeginParent(GameObject parent)
+    {
+        root = parent.transform;
+    }
+
     public static void EndParent()
     {
         root = null;
+    }
+
+    public static void GetGo(out GameObject obj, string path, Component parent)
+    {
+        GetGo(out obj, path, parent ? parent.transform : root);
+    }
+
+    public static void GetGo(out GameObject obj, string path, Transform parent = null)
+    {
+        parent = parent ?? root;
+        obj = parent.Find(path).gameObject;
+    }
+
+    public static void GetGo(out GameObject obj, Transform parent = null)
+    {
+        parent = parent ?? root;
+        obj = parent.gameObject;
+    }
+
+    public static void GetGoG(out GameObject obj, string path)
+    {
+        obj = GameObject.Find(path);
     }
 
     public static void GetCom<T>(out T obj, string path, Component parent)
@@ -65,6 +102,11 @@ public static class MyU
     {
         parent = parent ?? root;
         obj = parent.GetComponent<T>();
+    }
+
+    public static void GetComG<T>(out T obj, string path)
+    {
+        obj = GameObject.Find(path).GetComponent<T>();
     }
 
     #endregion

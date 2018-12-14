@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// 地形的编辑器
@@ -20,9 +21,7 @@ public class HexMapEditor : MonoBehaviour
 
     public Material terrainMaterial;
 
-
     public HexMapEditor Instance { private set; get; }
-
 
     private HexGrid hexGrid;
     private Camera mainCam;
@@ -39,14 +38,17 @@ public class HexMapEditor : MonoBehaviour
     private OptionalToggle riverMode = OptionalToggle.Ignore;
     private OptionalToggle roadMode = OptionalToggle.Ignore;
     private OptionalToggle walledMode = OptionalToggle.Ignore;
-    private bool editMode;
 
     private bool isDrag;
     private HexDirection dragDirection;
-    private HexCell previousCell, searchFromCell, searchToCell;
 
+    private HexCell previousCell;
+    //private HexCell  searchFromCell, searchToCell;
+
+    private GameObject leftEditorBg, rightEditorBg;
     private NewMapUI newMapUI;
     private SaveLoadUI saveLoadUI;
+    private Toggle editModeToggle;
 
     private void Awake()
     {
@@ -56,7 +58,10 @@ public class HexMapEditor : MonoBehaviour
 
         #region Get Init Component
 
-        MyU.BeginParent(transform.Find("LeftBg"));
+        MyU.GetCom(out editModeToggle, "Toggle_EditMode",transform);
+
+        MyU.GetGo(out leftEditorBg, "Editor_LeftBg", transform);
+        MyU.BeginParent(leftEditorBg);
         MyU.GetCom(out ToggleGroup colorToggleGroup, "ToggleGroup_Color");
         MyU.GetCom(out Toggle elevationToggle, "Toggle_Elevation");
         MyU.GetCom(out Slider elevationSlider, "Slider_Elevation");
@@ -67,7 +72,8 @@ public class HexMapEditor : MonoBehaviour
         MyU.GetCom(out Slider brushSlider, "Slider_BrustSize");
         MyU.GetCom(out Toggle gridToggle, "Toggle_Grid");
 
-        MyU.BeginParent(transform.Find("RightBg"));
+        MyU.GetGo(out rightEditorBg, "Editor_RightBg", transform);
+        MyU.BeginParent(rightEditorBg);
         MyU.GetCom(out Toggle urbanToggle, "Toggle_Urban");
         MyU.GetCom(out Slider urbanSlider, "Slider_Urban");
         MyU.GetCom(out Toggle farmToggle, "Toggle_Farm");
@@ -80,12 +86,15 @@ public class HexMapEditor : MonoBehaviour
         MyU.GetCom(out Transform fileBg, "Bg_File");
         MyU.GetCom(out saveLoadUI, fileBg);
         MyU.GetCom(out newMapUI, fileBg);
-        MyU.GetCom(out Toggle editModeToggle, "Toggle_EditMode");
+
 
         var colorToggles = colorToggleGroup.GetComponentsInChildren<Toggle>();
         var riverToggles = riverToggleGroup.GetComponentsInChildren<Toggle>();
         var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
         var walledToggles = walledToggleGroup.GetComponentsInChildren<Toggle>();
+
+        MyU.AddValChange(plantSlider, val => activePlantLevel = (int)val);
+        MyU.AddValChange(editModeToggle, SetEditMode);
 
         MyU.AddValChange(elevationToggle, bo => applyElevation = bo);
         MyU.AddValChange(elevationSlider, val => activeElevation = (int) val);
@@ -101,8 +110,6 @@ public class HexMapEditor : MonoBehaviour
         MyU.AddValChange(specialToggle, bo => applySpecialLevel = bo);
         MyU.AddValChange(specialSlider, val => activeSpecialLevel = (int) val);
         MyU.AddValChange(plantToggle, bo => applyPlantLevel = bo);
-        MyU.AddValChange(plantSlider, val => activePlantLevel = (int) val);
-        MyU.AddValChange(editModeToggle, SetEditMode);
 
         InitToggles(colorToggles, SetColor);
         InitToggles(riverToggles, SetRiverMode);
@@ -113,30 +120,53 @@ public class HexMapEditor : MonoBehaviour
 
         saveLoadUI.Init(hexGrid);
         newMapUI.Init(hexGrid);
+    }
+
+    private void Start()
+    {
         SetEditMode(editModeToggle.isOn);
     }
 
 
     private void Update()
     {
-        if (Input.GetMouseButton(0)
-            && !EventSystem.current.IsPointerOverGameObject())
+        if (!EventSystem.current.IsPointerOverGameObject())
         {
-            HandleInput();
+            if (Input.GetMouseButton(0))
+            {
+                HandleInput();
+            }
+            else if (Input.GetKeyDown(KeyCode.U))
+            {
+                CreateUnit();
+            }
+            else if (Input.GetKey(KeyCode.LeftShift)
+                     && Input.GetKeyDown(KeyCode.D))
+            {
+                DestroyUnit();
+            }
         }
-        else
+
+        if (previousCell)
         {
             previousCell = null;
         }
     }
 
+
+    private HexCell GetCellUnderCursor()
+    {
+        return hexGrid.GetCell(
+            mainCam.ScreenPointToRay(Input.mousePosition));
+    }
+
     private void HandleInput()
     {
-        Ray inputRay = mainCam.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(inputRay, out RaycastHit hit))
+        HexCell currentCell = GetCellUnderCursor();
+        if (currentCell)
         {
             bool searchChange = false;
-            HexCell currentCell = hexGrid.GetCell(hit.point);
+
             if (previousCell && previousCell != currentCell)
             {
                 ValidateDrag(currentCell);
@@ -146,38 +176,8 @@ public class HexMapEditor : MonoBehaviour
                 isDrag = false;
             }
 
-            if (editMode)
-            {
-                EditCells(currentCell);
-            }
-            else if (Input.GetKey(KeyCode.LeftControl)
-                     && searchFromCell != currentCell && searchToCell != currentCell)
-            {
-                if (searchFromCell)
-                {
-                    searchFromCell.DisableHighlight();
-                }
+            EditCells(currentCell);
 
-                searchFromCell = currentCell;
-                searchFromCell.EnableHighlight(hexGrid.searchFromColor);
-                searchChange = true;
-            }
-            else if (searchFromCell != currentCell && searchToCell != currentCell)
-            {
-                if (searchToCell)
-                {
-                    searchToCell.DisableHighlight();
-                }
-
-                searchToCell = currentCell;
-                searchToCell.EnableHighlight(hexGrid.searchToColor);
-                searchChange = true;
-            }
-
-            if (searchFromCell && searchToCell && searchChange)
-            {
-                hexGrid.FindPath(searchFromCell, searchToCell, 24);
-            }
 
             previousCell = currentCell;
         }
@@ -361,7 +361,28 @@ public class HexMapEditor : MonoBehaviour
 
     public void SetEditMode(bool val)
     {
-        editMode = val;
+        enabled = val;
         hexGrid.ShowUI(!val);
+        hexGrid.ClearPath();
     }
+
+    private void CreateUnit()
+    {
+        HexCell cell = GetCellUnderCursor();
+        if (cell && !cell.Unit)
+        {
+            hexGrid.AddUnit(
+                Instantiate(HexUnit.unitPrefab), cell, Random.Range(0, 360f));
+        }
+    }
+
+    private void DestroyUnit()
+    {
+        HexCell cell = GetCellUnderCursor();
+        if (cell && cell.Unit)
+        {
+            hexGrid.RemoveUnit(cell.Unit);
+        }
+    }
+
 }

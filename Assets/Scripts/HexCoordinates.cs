@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 /// <summary>
@@ -82,6 +83,21 @@ public struct HexCoordinates
         int _z = z < other.z ? other.z - z : z - other.z;
         //除以2 是因为x+y+z=0 但是我们这边取abs 了 所以除以2
         return (_x + _y + _z) / 2;
+    }
+
+    public void Save(BinaryWriter writer)
+    {
+        writer.Write(x);
+        writer.Write(z);
+    }
+
+    public static HexCoordinates Load(BinaryReader reader)
+    {
+        int x = reader.ReadInt32();
+        int z = reader.ReadInt32();
+        HexCoordinates c = new HexCoordinates(x, z);
+
+        return c;
     }
 
     public override string ToString()

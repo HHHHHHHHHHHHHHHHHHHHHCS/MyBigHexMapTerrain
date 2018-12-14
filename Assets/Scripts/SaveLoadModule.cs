@@ -7,7 +7,10 @@ using System.Linq;
 
 public static class SaveLoadModule
 {
-    private const int versionHeader = 1;
+    public const int version_1 = 1;//可以载入自定义地图大小
+    public const int version_2 = 2;//可以载入单位
+
+    private const int nowVersionHeader = 2;
     private const string saveDir = @"../SaveMap";
     private const string saveFileEnd = ".saveMap";
 
@@ -32,7 +35,7 @@ public static class SaveLoadModule
         using (var writer = new BinaryWriter(
             File.Open(filePath, FileMode.Create)))
         {
-            writer.Write(versionHeader);
+            writer.Write(nowVersionHeader);
             hexGrid.Save(writer);
         }
     }
@@ -55,7 +58,7 @@ public static class SaveLoadModule
             File.Open(filePath, FileMode.Open)))
         {
             var header = reader.ReadInt32();
-            if (header <= versionHeader)
+            if (header <= nowVersionHeader)
             {
                 hexGrid.Load(reader, header);
                 HexMapCamera.Instance.ValidatePosition();
