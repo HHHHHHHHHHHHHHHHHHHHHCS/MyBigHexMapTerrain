@@ -31,6 +31,23 @@ public enum HexEdgeType
 }
 
 /// <summary>
+/// 贝塞尔曲线用
+/// </summary>
+public static class Bezier
+{
+    public static Vector3 GetPoint(Vector3 a, Vector3 b, Vector3 c, float t)
+    {
+        float r = 1f - t;
+        return r * r * a + 2f * r * t * b + t * t * c;
+    }
+
+    public static Vector3 GetDerivative(Vector3 a, Vector3 b, Vector3 c, float t)
+    {
+        return 2f * ((1f - t) * (b - a) + t * (c - b));
+    }
+}
+
+/// <summary>
 /// 把两个顶点 按权切割成几个顶点
 /// </summary>
 public struct EdgeVertices
@@ -163,6 +180,7 @@ public class HexCellPriorityQueue
         {
             minimum = priority;
         }
+
         while (priority >= list.Count)
         {
             list.Add(null);
@@ -184,10 +202,11 @@ public class HexCellPriorityQueue
                 return cell;
             }
         }
+
         return null;
     }
 
-    public void Change(HexCell cell,int oldPriority)
+    public void Change(HexCell cell, int oldPriority)
     {
         HexCell current = list[oldPriority];
         HexCell next = current.NextWithSamePriority;

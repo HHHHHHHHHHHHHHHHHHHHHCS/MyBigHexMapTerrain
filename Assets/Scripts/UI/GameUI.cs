@@ -82,7 +82,7 @@ public class GameUI : MonoBehaviour
     {
         if (hexGrid.HasPath)
         {
-            selectedUnit.Location = currentCell;
+            selectedUnit.Travel(hexGrid.GetPath());
             hexGrid.ClearPath();
         }
     }

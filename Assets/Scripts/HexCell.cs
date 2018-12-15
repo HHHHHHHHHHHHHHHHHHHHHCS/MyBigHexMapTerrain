@@ -530,7 +530,7 @@ public class HexCell : MonoBehaviour
     /// 保存
     /// </summary>
     /// <param name="writer"></param>
-    public void Save(BinaryWriter writer)
+    public void Save(MyWriter writer)
     {
         writer.Write((byte) terrainTypeIndex);
         writer.Write((byte) elevation);
@@ -558,10 +558,6 @@ public class HexCell : MonoBehaviour
             writer.Write((byte) 0);
         }
 
-        writer.Write(hasIncomingRiver);
-        writer.Write((byte) incomingRiver);
-        writer.Write(hasOutgoingRiver);
-        writer.Write((byte) outgoingRiver);
         var roadFlags = 0;
         for (var i = 0; i < roads.Length; i++)
         {
@@ -578,7 +574,7 @@ public class HexCell : MonoBehaviour
     /// 读取
     /// </summary>
     /// <param name="reader"></param>
-    public void Load(BinaryReader reader)
+    public void Load(MyReader reader)
     {
         terrainTypeIndex = reader.ReadByte();
         elevation = reader.ReadByte();

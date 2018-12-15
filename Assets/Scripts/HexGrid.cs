@@ -40,7 +40,7 @@ public class HexGrid : MonoBehaviour
     }
 
     /// <summary>
-    /// 基本不会出现
+    /// 重新编译的时候用
     /// </summary>
     private void OnEnable()
     {
@@ -202,13 +202,14 @@ public class HexGrid : MonoBehaviour
 
     #region SaveLoad
 
-    public void Save(BinaryWriter writer)
+    public void Save(MyWriter writer)
     {
         writer.Write(cellCountX);
         writer.Write(cellCountZ);
-        foreach (var item in cells) item.Save(writer);
-
-        foreach (var item in cells) item.Refresh();
+        foreach (var item in cells)
+        {
+            item.Save(writer);
+        }
 
         writer.Write(units.Count);
         foreach (var item in units)
@@ -217,13 +218,13 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void Load(BinaryReader reader, int header)
+    public void Load(MyReader reader, int header)
     {
         //if (coroutine != null)
         //{
         //    StopCoroutine(coroutine);
         //}
-
+        ClearMap();
         int x = 20, z = 15;
         if (header >= SaveLoadModule.version_1)
         {
@@ -235,7 +236,10 @@ public class HexGrid : MonoBehaviour
             if (!CreateMap(x, z))
                 return;
 
-        foreach (var item in cells) item.Load(reader);
+        foreach (var item in cells)
+        {
+            item.Load(reader);
+        }
 
         foreach (var item in cells)
         {
@@ -313,7 +317,7 @@ public class HexGrid : MonoBehaviour
 
             if (current == toCell) return true;
 
-            var currentTurn = current.Distance / speed;
+            var currentTurn = (current.Distance - 1) / speed;
 
             for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
@@ -323,7 +327,7 @@ public class HexGrid : MonoBehaviour
                     continue;
 
                 if (neighbor.IsUnderwater || neighbor.Unit
-                    || current.Walled != neighbor.Walled)
+                                          || current.Walled != neighbor.Walled)
                 {
                     continue;
                 }
@@ -347,7 +351,7 @@ public class HexGrid : MonoBehaviour
                 }
 
                 var distance = current.Distance + moveCost;
-                var turn = distance / speed;
+                var turn = (distance - 1) / speed;
                 if (turn > currentTurn) distance = turn * speed + moveCost;
 
                 if (neighbor.SearchPhase < searchFrontierPhase)
@@ -380,7 +384,7 @@ public class HexGrid : MonoBehaviour
             var current = currentPathTo;
             while (current != currentPathFrom)
             {
-                var turn = current.Distance / speed;
+                var turn = (current.Distance - 1) / speed;
                 current.SetLabel(turn.ToString());
                 current.EnableHighlight(searchPathColor);
                 current = current.PathFrom;
@@ -408,6 +412,24 @@ public class HexGrid : MonoBehaviour
         }
 
         currentPathFrom = currentPathTo = null;
+    }
+
+    public List<HexCell> GetPath()
+    {
+        if (!currentPathExists)
+        {
+            return null;
+        }
+
+        List<HexCell> path = ListPool<HexCell>.Get();
+        for (HexCell c = currentPathTo; c != currentPathFrom; c = c.PathFrom)
+        {
+            path.Add(c);
+        }
+
+        path.Add(currentPathFrom);
+        path.Reverse();
+        return path;
     }
 
     #endregion

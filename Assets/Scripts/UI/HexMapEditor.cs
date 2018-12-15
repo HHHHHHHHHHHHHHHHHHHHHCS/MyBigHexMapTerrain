@@ -58,7 +58,7 @@ public class HexMapEditor : MonoBehaviour
 
         #region Get Init Component
 
-        MyU.GetCom(out editModeToggle, "Toggle_EditMode",transform);
+        MyU.GetCom(out editModeToggle, "Toggle_EditMode", transform);
 
         MyU.GetGo(out leftEditorBg, "Editor_LeftBg", transform);
         MyU.BeginParent(leftEditorBg);
@@ -93,7 +93,7 @@ public class HexMapEditor : MonoBehaviour
         var roadToggles = roadToggleGroup.GetComponentsInChildren<Toggle>();
         var walledToggles = walledToggleGroup.GetComponentsInChildren<Toggle>();
 
-        MyU.AddValChange(plantSlider, val => activePlantLevel = (int)val);
+        MyU.AddValChange(plantSlider, val => activePlantLevel = (int) val);
         MyU.AddValChange(editModeToggle, SetEditMode);
 
         MyU.AddValChange(elevationToggle, bo => applyElevation = bo);
@@ -135,15 +135,20 @@ public class HexMapEditor : MonoBehaviour
             if (Input.GetMouseButton(0))
             {
                 HandleInput();
+                return;
             }
-            else if (Input.GetKeyDown(KeyCode.U))
+
+            if (Input.GetKeyDown(KeyCode.U))
             {
                 CreateUnit();
+                return;
             }
-            else if (Input.GetKey(KeyCode.LeftShift)
-                     && Input.GetKeyDown(KeyCode.D))
+
+            if (Input.GetKey(KeyCode.LeftShift)
+                && Input.GetKeyDown(KeyCode.D))
             {
                 DestroyUnit();
+                return;
             }
         }
 
@@ -165,8 +170,6 @@ public class HexMapEditor : MonoBehaviour
         HexCell currentCell = GetCellUnderCursor();
         if (currentCell)
         {
-            bool searchChange = false;
-
             if (previousCell && previousCell != currentCell)
             {
                 ValidateDrag(currentCell);
@@ -384,5 +387,4 @@ public class HexMapEditor : MonoBehaviour
             hexGrid.RemoveUnit(cell.Unit);
         }
     }
-
 }

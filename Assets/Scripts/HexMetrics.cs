@@ -1,4 +1,4 @@
-﻿#define _test
+﻿#define _test//去掉_ 进行测试模式
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

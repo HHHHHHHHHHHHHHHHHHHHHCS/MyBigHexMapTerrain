@@ -85,13 +85,13 @@ public struct HexCoordinates
         return (_x + _y + _z) / 2;
     }
 
-    public void Save(BinaryWriter writer)
+    public void Save(MyWriter writer)
     {
         writer.Write(x);
         writer.Write(z);
     }
 
-    public static HexCoordinates Load(BinaryReader reader)
+    public static HexCoordinates Load(MyReader reader)
     {
         int x = reader.ReadInt32();
         int z = reader.ReadInt32();
