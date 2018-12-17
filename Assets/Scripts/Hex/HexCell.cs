@@ -28,6 +28,10 @@ public class HexCell : MonoBehaviour
     private bool walled;
     private int specialIndex;
 
+    /// <summary>
+    /// 细胞格子的位置
+    /// </summary>
+    public int Index { get; set; }
 
     public bool HasIncomingRiver
     {
@@ -92,7 +96,8 @@ public class HexCell : MonoBehaviour
             if (terrainTypeIndex != value)
             {
                 terrainTypeIndex = value;
-                Refresh();
+                //Refresh();
+                ShaderData.RefreshTerrain(this);
             }
         }
     }
@@ -242,7 +247,15 @@ public class HexCell : MonoBehaviour
     /// </summary>
     public HexCell NextWithSamePriority { get; set; }
 
+    /// <summary>
+    /// 地图上的单位
+    /// </summary>
     public HexUnit Unit { get; set; }
+
+    /// <summary>
+    /// 战争迷雾的数据
+    /// </summary>
+    public HexCellShaderData ShaderData { get; set; }
 
     private void UpdateDistanceLabel()
     {
@@ -577,6 +590,7 @@ public class HexCell : MonoBehaviour
     public void Load(MyReader reader)
     {
         terrainTypeIndex = reader.ReadByte();
+        ShaderData.RefreshTerrain(this);
         elevation = reader.ReadByte();
         waterLevel = reader.ReadByte();
         urbanLevel = reader.ReadByte();

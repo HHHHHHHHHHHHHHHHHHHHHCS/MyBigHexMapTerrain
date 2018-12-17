@@ -23,6 +23,7 @@ public class HexGrid : MonoBehaviour
     private bool currentPathExists;
     private HexCell currentPathFrom, currentPathTo;
     private List<HexUnit> units = new List<HexUnit>();
+    private HexCellShaderData cellShaderData;
 
     //private static WaitForSeconds delay = new WaitForSeconds(1 / 60f);
     //private Coroutine coroutine;
@@ -36,6 +37,7 @@ public class HexGrid : MonoBehaviour
     private void Awake()
     {
         Init();
+        cellShaderData = gameObject.AddComponent<HexCellShaderData>();
         CreateMap(cellCountX, cellCountZ);
     }
 
@@ -55,6 +57,7 @@ public class HexGrid : MonoBehaviour
         HexUnit.unitPrefab = unitPrefab;
         HexMetrics.noiseSource = noiseSource;
         HexMetrics.InitializeHashGrid(seed);
+
     }
 
     public bool CreateMap(int x, int z)
@@ -80,6 +83,7 @@ public class HexGrid : MonoBehaviour
         cellCountZ = z;
         chunkCountX = cellCountX / HexMetrics.chunkSizeX;
         chunkCountZ = cellCountZ / HexMetrics.chunkSizeZ;
+        cellShaderData.Initialize(cellCountX,cellCountZ);
         CreateChunks();
         CreateCells();
         return true;
@@ -120,7 +124,8 @@ public class HexGrid : MonoBehaviour
 
         cell.transform.localPosition = position;
         cell.coordinates = HexCoordinates.FromOffsetCoordinates(x, z);
-        //cell.Color = defaultColor;
+        cell.Index = i;
+        cell.ShaderData = cellShaderData;
 
         if (x > 0) cell.SetNeighbor(HexDirection.W, cells[i - 1]);
 

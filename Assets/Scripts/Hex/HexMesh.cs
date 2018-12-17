@@ -8,14 +8,12 @@ using System;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class HexMesh : MonoBehaviour
 {
+    public bool useCollider, useCellData, useUVCoordinates, useUV2Coordinates;
 
-    public bool useCollider, useColors, useUVCoordinates
-        ,useUV2Coordinates,useTerrainTypes;
-
-    [NonSerialized] List<Vector3> vertices,terrainTypes;//顶点,地形的类型
-    [NonSerialized] List<Color> colors;//颜色
-    [NonSerialized] List<Vector2> uvs,uv2s;//uv
-    [NonSerialized] List<int> triangles;//mesh的需要的顶点所对应的index
+    [NonSerialized] List<Vector3> vertices, cellIndices; //顶点,三边地形的类型(uv2)
+    [NonSerialized] List<Color> cellWeights; //顶点颜色 判断用哪边的颜色
+    [NonSerialized] List<Vector2> uv0s, uv1s; //uv0,uv1
+    [NonSerialized] List<int> triangles; //mesh的需要的顶点所对应的index
 
     Mesh hexMesh;
     MeshCollider meshCollider;
@@ -27,6 +25,7 @@ public class HexMesh : MonoBehaviour
         {
             meshCollider = gameObject.AddComponent<MeshCollider>();
         }
+
         hexMesh.name = "Hex Mesh";
     }
 
@@ -37,23 +36,22 @@ public class HexMesh : MonoBehaviour
     {
         hexMesh.Clear();
         vertices = ListPool<Vector3>.Get();
-        if (useColors)
+        if (useCellData)
         {
-            colors = ListPool<Color>.Get();
-        }
-        if (useUVCoordinates)
-        {
-            uvs = ListPool<Vector2>.Get();
-        }
-        if(useUV2Coordinates)
-        {
-            uv2s = ListPool<Vector2>.Get();
+            cellWeights = ListPool<Color>.Get();
+            cellIndices = ListPool<Vector3>.Get();
         }
 
-        if (useTerrainTypes)
+        if (useUVCoordinates)
         {
-            terrainTypes = ListPool<Vector3>.Get();
+            uv0s = ListPool<Vector2>.Get();
         }
+
+        if (useUV2Coordinates)
+        {
+            uv1s = ListPool<Vector2>.Get();
+        }
+
         triangles = ListPool<int>.Get();
     }
 
@@ -64,27 +62,26 @@ public class HexMesh : MonoBehaviour
     {
         hexMesh.SetVertices(vertices);
         ListPool<Vector3>.Add(vertices);
-        if (useColors)
+        if (useCellData)
         {
-            hexMesh.SetColors(colors);
-            ListPool<Color>.Add(colors);
-        }
-        if (useUVCoordinates)
-        {
-            hexMesh.SetUVs(0, uvs);
-            ListPool<Vector2>.Add(uvs);
-        }
-        if (useUV2Coordinates)
-        {
-            hexMesh.SetUVs(1, uv2s);
-            ListPool<Vector2>.Add(uv2s);
+            hexMesh.SetColors(cellWeights);
+            ListPool<Color>.Add(cellWeights);
+            hexMesh.SetUVs(2, cellIndices);
+            ListPool<Vector3>.Add(cellIndices);
         }
 
-        if (useTerrainTypes)
+        if (useUVCoordinates)
         {
-            hexMesh.SetUVs(2, terrainTypes);
-            ListPool<Vector3>.Add(terrainTypes);
+            hexMesh.SetUVs(0, uv0s);
+            ListPool<Vector2>.Add(uv0s);
         }
+
+        if (useUV2Coordinates)
+        {
+            hexMesh.SetUVs(1, uv1s);
+            ListPool<Vector2>.Add(uv1s);
+        }
+
         hexMesh.SetTriangles(triangles, 0);
         ListPool<int>.Add(triangles);
         hexMesh.RecalculateNormals();
@@ -129,30 +126,6 @@ public class HexMesh : MonoBehaviour
     }
 
     /// <summary>
-    /// 添加三角面片颜色
-    /// </summary>
-    /// <param name="color"></param>
-    public void AddTriangleColor(Color color)
-    {
-        colors.Add(color);
-        colors.Add(color);
-        colors.Add(color);
-    }
-
-    /// <summary>
-    /// 添加三角面片颜色
-    /// </summary>
-    /// <param name="c1"></param>
-    /// <param name="c2"></param>
-    /// <param name="c3"></param>
-    public void AddTriangleColor(Color c1, Color c2, Color c3)
-    {
-        colors.Add(c1);
-        colors.Add(c2);
-        colors.Add(c3);
-    }
-
-    /// <summary>
     /// 添加三角面片UV
     /// </summary>
     /// <param name="uv1"></param>
@@ -160,9 +133,9 @@ public class HexMesh : MonoBehaviour
     /// <param name="uv3"></param>
     public void AddTriangleUV(Vector2 uv1, Vector2 uv2, Vector2 uv3)
     {
-        uvs.Add(uv1);
-        uvs.Add(uv2);
-        uvs.Add(uv3);
+        uv0s.Add(uv1);
+        uv0s.Add(uv2);
+        uv0s.Add(uv3);
     }
 
     /// <summary>
@@ -206,46 +179,6 @@ public class HexMesh : MonoBehaviour
     }
 
     /// <summary>
-    /// 添加四边形面片颜色
-    /// </summary>
-    /// <param name="color"></param>
-    public void AddQuadColor(Color color)
-    {
-        colors.Add(color);
-        colors.Add(color);
-        colors.Add(color);
-        colors.Add(color);
-    }
-
-    /// <summary>
-    /// 添加四边形面片颜色
-    /// </summary>
-    /// <param name="c1"></param>
-    /// <param name="c2"></param>
-    public void AddQuadColor(Color c1, Color c2)
-    {
-        colors.Add(c1);
-        colors.Add(c1);
-        colors.Add(c2);
-        colors.Add(c2);
-    }
-
-    /// <summary>
-    /// 添加四边形面片颜色
-    /// </summary>
-    /// <param name="c1"></param>
-    /// <param name="c2"></param>
-    /// <param name="c3"></param>
-    /// <param name="c4"></param>
-    public void AddQuadColor(Color c1, Color c2, Color c3, Color c4)
-    {
-        colors.Add(c1);
-        colors.Add(c2);
-        colors.Add(c3);
-        colors.Add(c4);
-    }
-
-    /// <summary>
     /// 添加四边形UV
     /// </summary>
     /// <param name="uv1"></param>
@@ -254,10 +187,10 @@ public class HexMesh : MonoBehaviour
     /// <param name="uv4"></param>
     public void AddQuadUV(Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
     {
-        uvs.Add(uv1);
-        uvs.Add(uv2);
-        uvs.Add(uv3);
-        uvs.Add(uv4);
+        uv0s.Add(uv1);
+        uv0s.Add(uv2);
+        uv0s.Add(uv3);
+        uv0s.Add(uv4);
     }
 
     /// <summary>
@@ -269,10 +202,10 @@ public class HexMesh : MonoBehaviour
     /// <param name="vMax"></param>
     public void AddQuadUV(float uMin, float uMax, float vMin, float vMax)
     {
-        uvs.Add(new Vector2(uMin, vMin));
-        uvs.Add(new Vector2(uMax, vMin));
-        uvs.Add(new Vector2(uMin, vMax));
-        uvs.Add(new Vector2(uMax, vMax));
+        uv0s.Add(new Vector2(uMin, vMin));
+        uv0s.Add(new Vector2(uMax, vMin));
+        uv0s.Add(new Vector2(uMin, vMax));
+        uv0s.Add(new Vector2(uMax, vMax));
     }
 
     /// <summary>
@@ -281,11 +214,11 @@ public class HexMesh : MonoBehaviour
     /// <param name="uv1"></param>
     /// <param name="uv2"></param>
     /// <param name="uv3"></param>
-    public void AddTriangleUV2(Vector2 uv1,Vector2 uv2,Vector2 uv3)
+    public void AddTriangleUV2(Vector2 uv1, Vector2 uv2, Vector2 uv3)
     {
-        uv2s.Add(uv1);
-        uv2s.Add(uv2);
-        uv2s.Add(uv3);
+        uv1s.Add(uv1);
+        uv1s.Add(uv2);
+        uv1s.Add(uv3);
     }
 
     /// <summary>
@@ -296,12 +229,12 @@ public class HexMesh : MonoBehaviour
     /// <param name="uv3"></param>
     /// <param name="uv4"></param>
     public void AddQuadUV2(
-        Vector2 uv1, Vector2 uv2, Vector2 uv3,Vector2 uv4)
+        Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
     {
-        uv2s.Add(uv1);
-        uv2s.Add(uv2);
-        uv2s.Add(uv3);
-        uv2s.Add(uv4);
+        uv1s.Add(uv1);
+        uv1s.Add(uv2);
+        uv1s.Add(uv3);
+        uv1s.Add(uv4);
     }
 
     /// <summary>
@@ -311,35 +244,83 @@ public class HexMesh : MonoBehaviour
     /// <param name="uMax"></param>
     /// <param name="vMin"></param>
     /// <param name="vMax"></param>
-    public void  AddQuadUV2(
-        float uMin,float uMax,float vMin,float vMax)
+    public void AddQuadUV2(
+        float uMin, float uMax, float vMin, float vMax)
     {
-        uv2s.Add(new Vector2(uMin,vMin));
-        uv2s.Add(new Vector2(uMax, vMin));
-        uv2s.Add(new Vector2(uMin, vMax));
-        uv2s.Add(new Vector2(uMax, vMax));
+        uv1s.Add(new Vector2(uMin, vMin));
+        uv1s.Add(new Vector2(uMax, vMin));
+        uv1s.Add(new Vector2(uMin, vMax));
+        uv1s.Add(new Vector2(uMax, vMax));
     }
 
     /// <summary>
-    /// 添加三角形地形的种类
+    /// 添加三角形,三边地形权重和颜色
     /// </summary>
-    /// <param name="types"></param>
-    public void AddTriangleTerrainTypes(Vector3 types)
+    /// <param name="indices"></param>
+    /// <param name="weights1"></param>
+    /// <param name="weights2"></param>
+    /// <param name="weights3"></param>
+    public void AddTriangleCellData(
+        Vector3 indices, Color weights1, Color weights2, Color weights3)
     {
-        terrainTypes.Add(types);
-        terrainTypes.Add(types);
-        terrainTypes.Add(types);
+        cellIndices.Add(indices);
+        cellIndices.Add(indices);
+        cellIndices.Add(indices);
+        cellWeights.Add(weights1);
+        cellWeights.Add(weights2);
+        cellWeights.Add(weights3);
     }
 
     /// <summary>
-    /// 添加四边形的地形的种类
+    /// 添加三角形,三边地形权重和颜色
     /// </summary>
-    /// <param name="types"></param>
-    public void AddQuadTerrainTypes(Vector3 types)
+    /// <param name="indices"></param>
+    /// <param name="weights"></param>
+    public void AddTriangleCellData(Vector3 indices, Color weights)
     {
-        terrainTypes.Add(types);
-        terrainTypes.Add(types);
-        terrainTypes.Add(types);
-        terrainTypes.Add(types);
+        AddTriangleCellData(indices, weights, weights, weights);
+    }
+
+    /// <summary>
+    /// 添加四边形,三边地形权重和颜色
+    /// </summary>
+    /// <param name="indices"></param>
+    /// <param name="weights1"></param>
+    /// <param name="weights2"></param>
+    /// <param name="weights3"></param>
+    /// <param name="weights4"></param>
+    public void AddQuadCellData(Vector3 indices
+        , Color weights1, Color weights2, Color weights3, Color weights4)
+    {
+        cellIndices.Add(indices);
+        cellIndices.Add(indices);
+        cellIndices.Add(indices);
+        cellIndices.Add(indices);
+        cellWeights.Add(weights1);
+        cellWeights.Add(weights2);
+        cellWeights.Add(weights3);
+        cellWeights.Add(weights4);
+    }
+
+    /// <summary>
+    /// 添加四边形,三边地形权重和颜色
+    /// </summary>
+    /// <param name="indices"></param>
+    /// <param name="weights1"></param>
+    /// <param name="weights2"></param>
+    public void AddQuadCellData(
+        Vector3 indices,Color weights1,Color weights2)
+    {
+        AddQuadCellData(indices, weights1, weights1, weights2, weights2);
+    }
+
+    /// <summary>
+    /// 添加四边形,三边地形权重和颜色
+    /// </summary>
+    /// <param name="indices"></param>
+    /// <param name="weights"></param>
+    public void AddQuadCellData(Vector3 indices, Color weights)
+    {
+        AddQuadCellData(indices, weights, weights, weights, weights);
     }
 }
