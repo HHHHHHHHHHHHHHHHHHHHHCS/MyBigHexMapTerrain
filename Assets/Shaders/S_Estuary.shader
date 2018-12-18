@@ -35,6 +35,7 @@
 		{
 			UNITY_INITIALIZE_OUTPUT(Input,o);
 			o.riverUV = v.texcoord1.xy;
+			
 		}
 		
 		void surf(Input IN, inout SurfaceOutputStandard o)

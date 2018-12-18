@@ -14,3 +14,15 @@ float4 GetCellData(appdata_full v, int index)
 	data.w *= 255;//颜色会被压缩到0-1 w是地图类型
 	return data;
 }
+
+//计算可见度 2个cell用的
+float  GetVisibilityBy(inout appdata_full v)
+{
+	float4 cell0 = GetCellData(v, 0);
+	float4 cell1 = GetCellData(v, 1);
+	
+	float visibility;
+	visibility = cell0.x * v.color.x + cell1.x * v.color.y;
+	visibility = lerp(0.25, 1, visibility);
+	return visibility;
+}

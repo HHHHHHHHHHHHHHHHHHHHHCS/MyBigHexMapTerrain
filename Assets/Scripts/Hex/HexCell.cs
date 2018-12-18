@@ -27,6 +27,7 @@ public class HexCell : MonoBehaviour
     private int urbanLevel, farmLevel, plantLevel;
     private bool walled;
     private int specialIndex;
+    private int visibility;
 
     /// <summary>
     /// 细胞格子的位置
@@ -256,6 +257,11 @@ public class HexCell : MonoBehaviour
     /// 战争迷雾的数据
     /// </summary>
     public HexCellShaderData ShaderData { get; set; }
+
+    /// <summary>
+    /// 战争迷雾的可见
+    /// </summary>
+    public bool IsVisible => visibility > 0;
 
     private void UpdateDistanceLabel()
     {
@@ -537,6 +543,24 @@ public class HexCell : MonoBehaviour
     {
         Text label = uiRect.GetComponent<Text>();
         label.text = text;
+    }
+
+    public void IncreaseVisibility()
+    {
+        visibility += 1;
+        if (visibility == 1)
+        {
+            ShaderData.RefreshVisibility(this);
+        }
+    }
+
+    public void DecreaseVisibility()
+    {
+        visibility -= 1;
+        if (visibility == 0)
+        {
+            ShaderData.RefreshVisibility(this);
+        }
     }
 
     /// <summary>

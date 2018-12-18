@@ -9,6 +9,8 @@ using UnityEngine.UI;
 /// </summary>
 public class HexGrid : MonoBehaviour
 {
+    public static HexGrid Instance { get; private set; }
+
     public Texture2D noiseSource;
     public int cellCountX = 20, cellCountZ = 15; //一共有几个六边形
     public HexGridChunk chunkPrefab;
@@ -54,10 +56,10 @@ public class HexGrid : MonoBehaviour
 
     private void Init()
     {
+        Instance = this;
         HexUnit.unitPrefab = unitPrefab;
         HexMetrics.noiseSource = noiseSource;
         HexMetrics.InitializeHashGrid(seed);
-
     }
 
     public bool CreateMap(int x, int z)
@@ -83,7 +85,7 @@ public class HexGrid : MonoBehaviour
         cellCountZ = z;
         chunkCountX = cellCountX / HexMetrics.chunkSizeX;
         chunkCountZ = cellCountZ / HexMetrics.chunkSizeZ;
-        cellShaderData.Initialize(cellCountX,cellCountZ);
+        cellShaderData.Initialize(cellCountX, cellCountZ);
         CreateChunks();
         CreateCells();
         return true;
@@ -329,7 +331,9 @@ public class HexGrid : MonoBehaviour
                 var neighbor = current.GetNeighbor(d);
                 if (neighbor == null
                     || neighbor.SearchPhase > searchFrontierPhase)
+                {
                     continue;
+                }
 
                 if (neighbor.IsUnderwater || neighbor.Unit
                                           || current.Walled != neighbor.Walled)
@@ -463,6 +467,91 @@ public class HexGrid : MonoBehaviour
     {
         units.Remove(unit);
         unit.Die();
+    }
+
+    /// <summary>
+    /// 得到可见的视野
+    /// </summary>
+    /// <param name="fromCell"></param>
+    /// <param name="range"></param>
+    /// <returns></returns>
+    private List<HexCell> GetVisibleCells(HexCell fromCell, int range)
+    {
+        List<HexCell> visibleCells = ListPool<HexCell>.Get();
+
+        searchFrontierPhase += 2;
+        if (searchFrontier == null)
+        {
+            searchFrontier = new HexCellPriorityQueue();
+        }
+        else
+        {
+            searchFrontier.Clear();
+        }
+
+        fromCell.SearchPhase = searchFrontierPhase;
+        fromCell.Distance = 0;
+        searchFrontier.Enqueue(fromCell);
+        while (searchFrontier.Count > 0)
+        {
+            HexCell current = searchFrontier.Dequeue();
+            current.SearchPhase += 1;
+            visibleCells.Add(current);
+
+            for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
+            {
+                var neighbor = current.GetNeighbor(d);
+                if (!neighbor || neighbor.SearchPhase > searchFrontierPhase)
+                {
+                    continue;
+                }
+
+                int distance = current.Distance + 1;
+                if (distance > range)
+                {
+                    continue;
+                }
+
+                if (neighbor.SearchPhase < searchFrontierPhase)
+                {
+                    neighbor.SearchPhase = searchFrontierPhase;
+                    neighbor.Distance = distance;
+                    neighbor.SearchHeuristic = 0;
+                    searchFrontier.Enqueue(neighbor);
+                }
+                else if (distance < neighbor.Distance)
+                {
+                    int oldPriority = neighbor.SearchPrioty;
+                    neighbor.Distance = distance;
+                    searchFrontier.Change(neighbor, oldPriority);
+                }
+            }
+        }
+
+        return visibleCells;
+    }
+
+
+    public void IncreaseVisibility(HexCell fromCell, int range)
+    {
+        var cells = GetVisibleCells(fromCell, range);
+        foreach (var item in cells)
+        {
+            item.IncreaseVisibility();
+        }
+
+        ListPool<HexCell>.Add(cells);
+    }
+
+    public void DecreaseVisibility(HexCell fromCell, int range)
+    {
+        var cells = GetVisibleCells(fromCell, range);
+        foreach (var item in cells)
+        {
+            item.DecreaseVisibility();
+        }
+
+        ListPool<HexCell>.Add(cells);
     }
 
     #endregion
