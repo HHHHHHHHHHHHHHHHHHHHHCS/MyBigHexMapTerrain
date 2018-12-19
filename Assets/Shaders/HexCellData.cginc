@@ -16,7 +16,7 @@ float4 GetCellData(appdata_full v, int index)
 }
 
 //计算可见度 2个cell用的
-float  GetVisibilityBy(inout appdata_full v)
+float  GetVisibilityBy2(inout appdata_full v)
 {
 	float4 cell0 = GetCellData(v, 0);
 	float4 cell1 = GetCellData(v, 1);
@@ -26,3 +26,17 @@ float  GetVisibilityBy(inout appdata_full v)
 	visibility = lerp(0.25, 1, visibility);
 	return visibility;
 }
+
+//计算可见度 3个cell用的
+float  GetVisibilityBy3(inout appdata_full v)
+{
+	float4 cell0 = GetCellData(v, 0);
+	float4 cell1 = GetCellData(v, 1);
+	float4 cell2 = GetCellData(v, 2);
+	
+	float visibility;
+	visibility = cell0.x * v.color.x + cell1.x * v.color.y + cell2.x * v.color.z;
+	visibility = lerp(0.25, 1, visibility);
+	return visibility;
+}
+

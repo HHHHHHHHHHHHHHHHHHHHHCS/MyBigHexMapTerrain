@@ -14,28 +14,30 @@
 		
 		CGPROGRAM
 		
+		#include "Water.cginc"
+		#include "HexCellData.cginc"
+		
 		#pragma surface surf Standard alpha vertex:vert
 		#pragma target 3.0
-		
-		#include "Water.cginc"
 		
 		struct Input
 		{
 			float2 uv_MainTex;
 			float2 riverUV;
 			float3 worldPos;
+			float visibility;
 		};
 		
 		sampler2D _MainTex;
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
-
-		void vert(inout appdata_full v,out Input o)
+		
+		void vert(inout appdata_full v, out Input o)
 		{
-			UNITY_INITIALIZE_OUTPUT(Input,o);
+			UNITY_INITIALIZE_OUTPUT(Input, o);
 			o.riverUV = v.texcoord1.xy;
-			
+			o.visibility = GetVisibilityBy3(v);
 		}
 		
 		void surf(Input IN, inout SurfaceOutputStandard o)
@@ -50,7 +52,7 @@
 			float water = lerp(shoreWater, river, IN.uv_MainTex.x);
 			
 			fixed4 c = saturate(_Color + water);
-			o.Albedo = c.rgb;
+			o.Albedo = c.rgb * IN.visibility;
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
 			o.Alpha = c.a;
@@ -58,5 +60,5 @@
 		ENDCG
 		
 	}
-	FallBack "Diffuse"
+
 }

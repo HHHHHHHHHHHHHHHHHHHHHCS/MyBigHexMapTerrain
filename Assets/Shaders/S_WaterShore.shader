@@ -14,21 +14,29 @@
 		
 		CGPROGRAM
 		
-		#pragma surface surf Standard alpha
-		#pragma target 3.0
-		
 		#include "Water.cginc"
+		#include "HexCellData.cginc"
+		
+		#pragma surface surf Standard alpha vertex:vert
+		#pragma target 3.0
 		
 		struct Input
 		{
 			float2 uv_MainTex;
 			float3 worldPos;
+			float visibility;
 		};
 		
 		sampler2D _MainTex;
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
+		
+		void vert(inout appdata_full v, out Input data)
+		{
+			UNITY_INITIALIZE_OUTPUT(Input, data);
+			data.visibility = GetVisibilityBy3(v);
+		}
 		
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
@@ -38,7 +46,7 @@
 			waves *= 1 - shore;
 			
 			fixed4 c = saturate(_Color + max(foam, waves));
-			o.Albedo = c.rgb;
+			o.Albedo = c.rgb * IN.visibility;
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
 			o.Alpha = c.a;
@@ -46,5 +54,4 @@
 		ENDCG
 		
 	}
-	FallBack "Diffuse"
 }

@@ -32,6 +32,7 @@ public class HexCell : MonoBehaviour
     /// <summary>
     /// 细胞格子的位置
     /// </summary>
+    //[field:SerializeField]//可以在编辑面板显示get set
     public int Index { get; set; }
 
     public bool HasIncomingRiver
