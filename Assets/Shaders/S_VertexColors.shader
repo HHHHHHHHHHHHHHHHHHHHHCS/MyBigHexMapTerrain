@@ -26,11 +26,11 @@
 		sampler2D _MainTex;
 		half _Glossiness;
 		half _Metallic;
-		fixed4 _Color;
+		half4 _Color;
 		
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
-			fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+			half4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
 			o.Albedo = c.rgb * IN.color;
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;

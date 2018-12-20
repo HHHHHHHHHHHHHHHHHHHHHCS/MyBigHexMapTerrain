@@ -5,7 +5,7 @@
 		_Color ("Color", Color) = (1, 1, 1, 1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" { }
 		_Glossiness ("Smoothness", Range(0, 1)) = 0.5
-		_Metallic ("Metallic", Range(0, 1)) = 0.0
+		_Specular ("Specular", Color) = (0.2, 0.2, 0.2)
 	}
 	SubShader
 	{
@@ -14,23 +14,24 @@
 		
 		CGPROGRAM
 		
-		#pragma surface surf Standard alpha vertex:vert
-		#pragma target 3.0
-		
 		#include "Water.cginc"
 		#include "HexcellData.cginc"
+		
+		#pragma surface surf StandardSpecular alpha vertex:vert
+		#pragma multi_compile _ HEX_MAP_EDIT_MODE
+		#pragma target 3.0
 		
 		struct Input
 		{
 			float2 uv_MainTex;
 			float3 worldPos;
-			float visibility;
+			float2 visibility;
 		};
 		
 		sampler2D _MainTex;
 		half _Glossiness;
-		half _Metallic;
-		fixed4 _Color;
+		half4 _Color;
+		half3 _Specular;
 		
 		void vert(inout appdata_full v, out Input data)
 		{
@@ -38,15 +39,16 @@
 			data.visibility = GetVisibilityBy3(v);
 		}
 		
-		void surf(Input IN, inout SurfaceOutputStandard o)
+		void surf(Input IN, inout SurfaceOutputStandardSpecular o)
 		{
 			float waves = Waves(IN.worldPos.xz, _MainTex);
-			
-			fixed4 c = saturate(_Color + waves);
-			o.Albedo = c * IN.visibility	;
-			o.Metallic = _Metallic;
+			half4 c = saturate(_Color + waves);
+			float explored = IN.visibility.y;
+			o.Albedo = c.rgb * IN.visibility.x;
+			o.Specular = _Specular * explored;
 			o.Smoothness = _Glossiness;
-			o.Alpha = c.a;
+			o.Occlusion = explored;
+			o.Alpha = c.a * explored;
 		}
 		ENDCG
 		

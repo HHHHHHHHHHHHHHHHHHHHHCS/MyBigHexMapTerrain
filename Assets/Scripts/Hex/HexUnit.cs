@@ -11,6 +11,8 @@ public class HexUnit : MonoBehaviour
 
     public static HexUnit unitPrefab;
 
+    public int Speed => 24;
+
     private HexCell location,currentTracelLocation;
     private float orientation;
     private List<HexCell> pathToTravel;
@@ -79,6 +81,43 @@ public class HexUnit : MonoBehaviour
         Destroy(gameObject);
     }
 
+    /// <summary>
+    /// 写到Unit里面是因为 这个有效性 可能根据单位的类型而改变
+    /// </summary>
+    public bool IsValidDestination(HexCell cell)
+    {
+        return cell.IsExplored && !cell.IsUnderwater && !cell.Unit;
+    }
+
+    /// <summary>
+    /// 写到Unit里面是因为 MoveCost 可能根据单位的类型而改变
+    /// </summary>
+    public int GetMoveCost(HexCell fromCell, HexCell toCell, HexDirection direction)
+    {
+        HexEdgeType edgeType = fromCell.GetEdgeType(toCell);
+        if (edgeType == HexEdgeType.Cliff)
+        {
+            return -1;
+        }
+        if (fromCell.Walled != toCell.Walled)
+        {
+            return -1;
+        }
+
+        int moveCost;
+        if (fromCell.HasRoadThroughEdge(direction))
+        {
+            moveCost = 1;
+        }
+        else
+        {
+            moveCost = edgeType == HexEdgeType.Flat ? 5 : 10;
+            moveCost += toCell.UrbanLevel + toCell.FarmLevel + toCell.PlantLevel;
+        }
+
+        return moveCost;
+    }
+
     public void Travel(List<HexCell> path)
     {
         location.Unit = null;
@@ -126,8 +165,8 @@ public class HexUnit : MonoBehaviour
         float t = Time.deltaTime * traveSpeed;
         for (int i = 1; i <= pathToTravel.Count; i++)
         {
-            currentTracelLocation = pathToTravel[i];
             var tempI = i - 1;
+
             a = c;
             b = pathToTravel[tempI].Position;
             if (i == pathToTravel.Count)
@@ -136,6 +175,7 @@ public class HexUnit : MonoBehaviour
             }
             else
             {
+                currentTracelLocation = pathToTravel[i];
                 c = (b + currentTracelLocation.Position) * 0.5f;
             }
 

@@ -64,7 +64,7 @@ public class GameUI : MonoBehaviour
         {
             if (currentCell && IsValidDestination(currentCell))
             {
-                hexGrid.FindPath(selectedUnit.Location, currentCell, 24);
+                hexGrid.FindPath(selectedUnit.Location, currentCell, selectedUnit);
             }
             else
             {

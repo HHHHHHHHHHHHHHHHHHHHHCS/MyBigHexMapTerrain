@@ -367,6 +367,14 @@ public class HexMapEditor : MonoBehaviour
         enabled = val;
         hexGrid.ShowUI(!val);
         hexGrid.ClearPath();
+        if (val)
+        {
+            Shader.EnableKeyword("HEX_MAP_EDIT_MODE");
+        }
+        else
+        {
+            Shader.DisableKeyword("HEX_MAP_EDIT_MODE");
+        }
     }
 
     private void CreateUnit()

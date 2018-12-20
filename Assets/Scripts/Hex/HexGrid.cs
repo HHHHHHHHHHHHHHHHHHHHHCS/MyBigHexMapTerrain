@@ -245,7 +245,7 @@ public class HexGrid : MonoBehaviour
 
         foreach (var item in cells)
         {
-            item.Load(reader);
+            item.Load(reader,header);
         }
 
         foreach (var item in cells)
@@ -274,7 +274,7 @@ public class HexGrid : MonoBehaviour
 
     #region A* Search Path
 
-    public void FindPath(HexCell fromCell, HexCell toCell, int speed)
+    public void FindPath(HexCell fromCell, HexCell toCell, HexUnit unit)
     {
         //if (coroutine != null)
         //{
@@ -288,14 +288,16 @@ public class HexGrid : MonoBehaviour
         ClearPath();
         currentPathFrom = fromCell;
         currentPathTo = toCell;
-        currentPathExists = Search(fromCell, toCell, speed);
-        ShowPath(speed);
+        currentPathExists = Search(fromCell, toCell, unit);
+        ShowPath(unit.Speed);
         //sw.Stop();
         //Debug.Log(sw.ElapsedMilliseconds);
     }
 
-    private /*IEnumerator*/ bool Search(HexCell fromCell, HexCell toCell, int speed)
+
+    private /*IEnumerator*/ bool Search(HexCell fromCell, HexCell toCell, HexUnit unit)
     {
+        int speed = unit.Speed;
         searchFrontierPhase += 2;
         if (searchFrontier == null)
             searchFrontier = new HexCellPriorityQueue();
@@ -335,28 +337,15 @@ public class HexGrid : MonoBehaviour
                     continue;
                 }
 
-                if (neighbor.IsUnderwater || neighbor.Unit
-                                          || current.Walled != neighbor.Walled)
+                if (!unit.IsValidDestination(neighbor))
                 {
                     continue;
                 }
 
-                var edgeType = current.GetEdgeType(neighbor);
-                if (edgeType == HexEdgeType.Cliff)
+                int moveCost = unit.GetMoveCost(current, neighbor, d);
+                if (moveCost < 0)
                 {
                     continue;
-                }
-
-                var moveCost = 0;
-                if (current.HasRoadThroughEdge(d))
-                {
-                    moveCost = 1;
-                }
-                else
-                {
-                    moveCost += edgeType == HexEdgeType.Flat ? 5 : 10;
-                    moveCost += neighbor.UrbanLevel + neighbor.FarmLevel
-                                                    + neighbor.PlantLevel;
                 }
 
                 var distance = current.Distance + moveCost;
