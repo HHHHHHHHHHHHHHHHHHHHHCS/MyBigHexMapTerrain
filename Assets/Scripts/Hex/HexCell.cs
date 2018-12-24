@@ -269,6 +269,7 @@ public class HexCell : MonoBehaviour
     /// </summary>
     public bool IsExplored { get; private set; }
 
+
     private void UpdateDistanceLabel()
     {
         Text label = uiRect.GetComponent<Text>();

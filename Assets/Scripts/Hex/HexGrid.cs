@@ -243,6 +243,9 @@ public class HexGrid : MonoBehaviour
             if (!CreateMap(x, z))
                 return;
 
+
+        var originalImmediateMode =  cellShaderData.ImmediateMode;
+        cellShaderData.ImmediateMode = true;
         foreach (var item in cells)
         {
             item.Load(reader,header);
@@ -262,6 +265,8 @@ public class HexGrid : MonoBehaviour
                 HexUnit.Load(reader, this);
             }
         }
+
+        cellShaderData.ImmediateMode = originalImmediateMode;
     }
 
     public void ClearMap()
