@@ -12,9 +12,11 @@ public class HexCellShaderData : MonoBehaviour
     /// </summary>
     public bool ImmediateMode { get; set; }
 
-    private Texture2D cellTexture;
-    private Color32[] cellTextureData;
-    private List<HexCell> transitioningCells = new List<HexCell>();
+    private Texture2D cellTexture; //图片
+    private Color32[] cellTextureData; //图片的数据
+    private List<HexCell> transitioningCells = new List<HexCell>(); //全部的cell
+
+    private bool needsVisibilityReset; //视野是否改变
 
     public void Initialize(int x, int z)
     {
@@ -55,6 +57,12 @@ public class HexCellShaderData : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (needsVisibilityReset)
+        {
+            needsVisibilityReset = false;
+            HexGrid.Instance.ResetVisibility();
+        }
+
         int delta = (int) (Time.deltaTime * transitionSpeed);
         if (delta == 0)
         {
@@ -139,5 +147,14 @@ public class HexCellShaderData : MonoBehaviour
         }
         cellTextureData[index] = data;
         return stillUpdating;
+    }
+
+    /// <summary>
+    /// 高度视野改变
+    /// </summary>
+    public void ViewElevationChanged()
+    {
+        needsVisibilityReset = true;
+        enabled = true;
     }
 }

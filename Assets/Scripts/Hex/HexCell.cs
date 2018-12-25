@@ -28,6 +28,7 @@ public class HexCell : MonoBehaviour
     private bool walled;
     private int specialIndex;
     private int visibility;
+    private bool explored;
 
     /// <summary>
     /// 细胞格子的位置
@@ -73,7 +74,13 @@ public class HexCell : MonoBehaviour
                 return;
             }
 
+            int originalViewElevation = ViewElevation;
             elevation = value;
+            if (ViewElevation != originalViewElevation)
+            {
+                ShaderData.ViewElevationChanged();
+            }
+
             RefreshPosition();
 
             ValidateRivers();
@@ -145,7 +152,13 @@ public class HexCell : MonoBehaviour
                 return;
             }
 
+            int originalViewElevation = ViewElevation;
             waterLevel = value;
+            if (ViewElevation != originalViewElevation)
+            {
+                ShaderData.ViewElevationChanged();
+            }
+
             ValidateRivers();
             Refresh();
         }
@@ -262,13 +275,26 @@ public class HexCell : MonoBehaviour
     /// <summary>
     /// 战争迷雾的可见
     /// </summary>
-    public bool IsVisible => visibility > 0;
+    public bool IsVisible => visibility > 0 && Exploration;
 
     /// <summary>
     /// 是否被探索过
     /// </summary>
-    public bool IsExplored { get; private set; }
+    public bool IsExplored
+    {
+        get => explored && Exploration;
+        private set => explored = value;
+    }
 
+    /// <summary>
+    /// 高度视野
+    /// </summary>
+    public int ViewElevation => Mathf.Max(elevation, waterLevel);
+
+    /// <summary>
+    /// 格子边界隐藏用,因为地形忽然结束会很奇怪
+    /// </summary>
+    public bool Exploration { get; set; }
 
     private void UpdateDistanceLabel()
     {
@@ -571,6 +597,15 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    public void ResetVisibility()
+    {
+        if (visibility > 0)
+        {
+            visibility = 0;
+            ShaderData.RefreshVisibility(this);
+        }
+    }
+
     /// <summary>
     /// 保存
     /// </summary>
@@ -620,7 +655,7 @@ public class HexCell : MonoBehaviour
     /// 读取
     /// </summary>
     /// <param name="reader"></param>
-    public void Load(MyReader reader,int header)
+    public void Load(MyReader reader, int header)
     {
         terrainTypeIndex = reader.ReadByte();
         ShaderData.RefreshTerrain(this);

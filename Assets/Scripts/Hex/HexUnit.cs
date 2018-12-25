@@ -48,6 +48,8 @@ public class HexUnit : MonoBehaviour
         }
     }
 
+    public int VisionRange => visionRange;
+
     /// <summary>
     /// 游戏中忽然重新编译最用
     /// </summary>

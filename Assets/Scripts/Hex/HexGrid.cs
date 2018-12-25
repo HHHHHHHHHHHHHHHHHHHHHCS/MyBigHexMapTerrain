@@ -51,6 +51,7 @@ public class HexGrid : MonoBehaviour
         if (!HexMetrics.noiseSource)
         {
             Init();
+            ResetVisibility();
         }
     }
 
@@ -128,6 +129,7 @@ public class HexGrid : MonoBehaviour
         cell.coordinates = HexCoordinates.FromOffsetCoordinates(x, z);
         cell.Index = i;
         cell.ShaderData = cellShaderData;
+        cell.Exploration = x > 0 && z > 0 && x < cellCountX - 1 && z < cellCountZ - 1;
 
         if (x > 0) cell.SetNeighbor(HexDirection.W, cells[i - 1]);
 
@@ -207,6 +209,22 @@ public class HexGrid : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 重置视野
+    /// </summary>
+    public void ResetVisibility()
+    {
+        foreach (var item in cells)
+        {
+            item.ResetVisibility();
+        }
+
+        foreach (var item in units)
+        {
+            IncreaseVisibility(item.Location, item.VisionRange);
+        }
+    }
+
     #region SaveLoad
 
     public void Save(MyWriter writer)
@@ -244,11 +262,11 @@ public class HexGrid : MonoBehaviour
                 return;
 
 
-        var originalImmediateMode =  cellShaderData.ImmediateMode;
+        var originalImmediateMode = cellShaderData.ImmediateMode;
         cellShaderData.ImmediateMode = true;
         foreach (var item in cells)
         {
-            item.Load(reader,header);
+            item.Load(reader, header);
         }
 
         foreach (var item in cells)
@@ -466,9 +484,6 @@ public class HexGrid : MonoBehaviour
     /// <summary>
     /// 得到可见的视野
     /// </summary>
-    /// <param name="fromCell"></param>
-    /// <param name="range"></param>
-    /// <returns></returns>
     private List<HexCell> GetVisibleCells(HexCell fromCell, int range)
     {
         List<HexCell> visibleCells = ListPool<HexCell>.Get();
@@ -483,9 +498,11 @@ public class HexGrid : MonoBehaviour
             searchFrontier.Clear();
         }
 
+        range += fromCell.ViewElevation;
         fromCell.SearchPhase = searchFrontierPhase;
         fromCell.Distance = 0;
         searchFrontier.Enqueue(fromCell);
+        var fromCoordinates = fromCell.coordinates;
         while (searchFrontier.Count > 0)
         {
             HexCell current = searchFrontier.Dequeue();
@@ -495,13 +512,15 @@ public class HexGrid : MonoBehaviour
             for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
                 var neighbor = current.GetNeighbor(d);
-                if (!neighbor || neighbor.SearchPhase > searchFrontierPhase)
+                if (!neighbor || neighbor.SearchPhase > searchFrontierPhase
+                              || !neighbor.Exploration)
                 {
                     continue;
                 }
 
                 int distance = current.Distance + 1;
-                if (distance > range)
+                if (distance + neighbor.ViewElevation > range
+                    || distance > fromCoordinates.DistanceTo(neighbor.coordinates))
                 {
                     continue;
                 }
