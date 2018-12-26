@@ -175,7 +175,7 @@ public class HexCellPriorityQueue
     public void Enqueue(HexCell cell)
     {
         Count += 1;
-        int priority = cell.SearchPrioty;
+        int priority = cell.SearchPriority;
         if (priority < minimum)
         {
             minimum = priority;

@@ -371,7 +371,7 @@ public sealed class HexMetrics
         {
             hashGrid[i] = HexHash.Create();
         }
-        Random.state = currentState;
+        Random.state=currentState;
     }
 
     /// <summary>

@@ -201,6 +201,17 @@ public class HexGrid : MonoBehaviour
         return null;
     }
 
+
+    public HexCell GetCell(int xOffset, int zOffset)
+    {
+        return cells[xOffset + zOffset * cellCountX];
+    }
+
+    public HexCell GetCell(int cellIndex)
+    {
+        return cells[cellIndex];
+    }
+
     public void ShowUI(bool visible)
     {
         for (var i = 0; i < chunks.Length; i++)
@@ -386,7 +397,7 @@ public class HexGrid : MonoBehaviour
                 }
                 else if (neighbor.Distance > distance)
                 {
-                    var oldPriority = neighbor.SearchPrioty;
+                    var oldPriority = neighbor.SearchPriority;
                     neighbor.Distance = distance;
                     neighbor.PathFrom = current;
                     searchFrontier.Change(neighbor, oldPriority);
@@ -534,7 +545,7 @@ public class HexGrid : MonoBehaviour
                 }
                 else if (distance < neighbor.Distance)
                 {
-                    int oldPriority = neighbor.SearchPrioty;
+                    int oldPriority = neighbor.SearchPriority;
                     neighbor.Distance = distance;
                     searchFrontier.Change(neighbor, oldPriority);
                 }

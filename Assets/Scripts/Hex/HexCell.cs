@@ -255,7 +255,7 @@ public class HexCell : MonoBehaviour
     /// <summary>
     /// A*寻路的排序值
     /// </summary>
-    public int SearchPrioty => Distance + SearchHeuristic;
+    public int SearchPriority => Distance + SearchHeuristic;
 
     /// <summary>
     /// A*寻路相同权值的队列储存
@@ -296,7 +296,7 @@ public class HexCell : MonoBehaviour
     /// </summary>
     public bool Exploration { get; set; }
 
-    private void UpdateDistanceLabel()
+    public void UpdateDistanceLabel()
     {
         Text label = uiRect.GetComponent<Text>();
         label.text = Distance == int.MaxValue ? nullString : Distance.ToString();

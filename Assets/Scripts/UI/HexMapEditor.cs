@@ -125,8 +125,10 @@ public class HexMapEditor : MonoBehaviour
     private void Start()
     {
         SetEditMode(editModeToggle.isOn);
-    }
 
+        editModeToggle.isOn = true;
+        SetEditMode(true);
+    }
 
     private void Update()
     {

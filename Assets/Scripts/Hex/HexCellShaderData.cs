@@ -35,8 +35,8 @@ public class HexCellShaderData : MonoBehaviour
             Shader.SetGlobalTexture("_HexCellData", cellTexture);
         }
 
-        Shader.SetGlobalVector("_HexCellData_TexcelSize"
-            , new Vector4(1 / x, 1 / z, x, z));
+        Shader.SetGlobalVector("_HexCellData_TexelSize"
+            , new Vector4(1f / x, 1f / z, x, z));
 
 
         if (cellTextureData == null || cellTextureData.Length != x * z)

@@ -7,21 +7,24 @@ public class NewMapUI : MonoBehaviour
 {
     private Transform createNewMapBg;
     private HexGrid hexGrid;
+    private bool isGenerate = true;
 
     public void Init(HexGrid _hexGrid)
     {
         hexGrid = _hexGrid;
 
-        MyU.GetCom(out Button newMapButton,"Button_New", transform);
-        MyU.GetCom(out createNewMapBg, "Bg_CreateNewMap",transform);
-        MyU.GetCom(out Button samallButton, "Button_Small", createNewMapBg);
+        MyU.GetCom(out Button newMapButton, "Button_New", transform);
+        MyU.GetCom(out createNewMapBg, "Bg_CreateNewMap", transform);
+        MyU.GetCom(out Toggle generateToggle, "Toggle_Generate", createNewMapBg);
+        MyU.GetCom(out Button smallButton, "Button_Small", createNewMapBg);
         MyU.GetCom(out Button mediumButton, "Button_Medium", createNewMapBg);
         MyU.GetCom(out Button largeButton, "Button_Large", createNewMapBg);
         MyU.GetCom(out Button cancelButton, "Button_Cancel", createNewMapBg);
 
+        MyU.AddValChange(generateToggle, val => isGenerate = val);
         MyU.AddClick(newMapButton, ShowHideCreateNewMapBg, true);
         MyU.AddClick(cancelButton, ShowHideCreateNewMapBg, false);
-        MyU.AddClick(samallButton, CreateNewMap, 0);
+        MyU.AddClick(smallButton, CreateNewMap, 0);
         MyU.AddClick(mediumButton, CreateNewMap, 1);
         MyU.AddClick(largeButton, CreateNewMap, 2);
     }
@@ -56,7 +59,15 @@ public class NewMapUI : MonoBehaviour
                 break;
         }
 
-        hexGrid.CreateMap(x, z);
+        if (isGenerate)
+        {
+            HexMapGenerator.Instance.GenerateMap(x, z);
+        }
+        else
+        {
+            hexGrid.CreateMap(x, z);
+        }
+
         HexMapCamera.Instance.ValidatePosition();
         ShowHideCreateNewMapBg(false);
     }
