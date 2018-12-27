@@ -7,11 +7,7 @@ using UnityEngine;
 /// </summary>
 public class HexMapCamera : MonoBehaviour
 {
-    public static HexMapCamera Instance
-    {
-        private set;
-        get;
-    }
+    public static HexMapCamera Instance { private set; get; }
 
     public HexGrid grid;
     public float stickMinZoom = -250, stickMaxZoom = -45; //视野缩放摄像机的位置
@@ -97,13 +93,15 @@ public class HexMapCamera : MonoBehaviour
     /// <returns></returns>
     private Vector3 ClampPosition(Vector3 postion)
     {
-        float xMax = (grid.cellCountX * HexMetrics.chunkSizeX - 0.5f)
+        float xMax = (grid.cellCountX - 0.5f)
                      * (2f * HexMetrics.innerRadius);
         postion.x = Mathf.Clamp(postion.x, 0f, xMax);
 
 
-        float zMax = (grid.cellCountZ * HexMetrics.chunkSizeZ - 1f)
+        float zMax = (grid.cellCountZ - 1f)
                      * (1.5f * HexMetrics.outerRadius);
+        postion.z = Mathf.Clamp(postion.z, 0f, zMax);
+
         return postion;
     }
 

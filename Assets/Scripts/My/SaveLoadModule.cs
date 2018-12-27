@@ -16,6 +16,7 @@ public static class SaveLoadModule
     public const int version_1 = 1; //可以载入自定义地图大小
     public const int version_2 = 2; //可以载入单位
     public const int version_3 = 3; //可以载入探索过的
+    public const int version_4 = 4; //让高度能储存负数
 
     private const int nowVersionHeader = 3;
     private const string saveDir = @"../SaveMap";

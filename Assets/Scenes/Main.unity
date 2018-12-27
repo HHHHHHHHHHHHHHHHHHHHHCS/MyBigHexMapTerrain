@@ -2992,9 +2992,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7162228ec0d8d8b4a9b86a077dbfdc1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useFixedSeed: 0
+  seed: 0
+  waterLevel: 3
+  elevationMinimum: -2
+  elevationMaximum: 8
+  highRiseProbability: 0.5
+  sinkProbability: 0.2
   jitterProbability: 0.25
   chunkSizeMin: 30
   chunkSizeMax: 100
+  landPercentage: 0.5
 --- !u!4 &519854618
 Transform:
   m_ObjectHideFlags: 0
@@ -7965,7 +7973,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1120273416
 GameObject:
   m_ObjectHideFlags: 0
@@ -8886,7 +8894,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 255, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1236950084
@@ -12663,7 +12671,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1651102035
 GameObject:
   m_ObjectHideFlags: 0
