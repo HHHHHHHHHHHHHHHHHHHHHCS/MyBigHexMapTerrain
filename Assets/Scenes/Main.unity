@@ -2995,6 +2995,10 @@ MonoBehaviour:
   useFixedSeed: 0
   seed: 0
   waterLevel: 3
+  mapBorderX: 10
+  mapBorderZ: 10
+  regionBorder: 5
+  regionCount: 4
   elevationMinimum: -2
   elevationMaximum: 8
   highRiseProbability: 0.5
@@ -3002,7 +3006,7 @@ MonoBehaviour:
   jitterProbability: 0.25
   chunkSizeMin: 30
   chunkSizeMax: 100
-  landPercentage: 0.5
+  landPercentage: 0.4
 --- !u!4 &519854618
 Transform:
   m_ObjectHideFlags: 0
