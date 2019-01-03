@@ -96,6 +96,12 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     [Range(0.05f, 0.95f)] public float landPercentage = 0.5f;
 
+    /// <summary>
+    /// 侵蚀打磨程度
+    /// </summary>
+    [Range(0, 100)]
+    public int erosionPercentage = 50;
+
     private int cellCount; //一共有几个细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
     private int searchFrontierPhase; //随机生成寻路值
@@ -116,8 +122,8 @@ public class HexMapGenerator : MonoBehaviour
         if (!useFixedSeed)
         {
             seed = Random.Range(0, int.MaxValue);
-            seed ^= (int) System.DateTime.Now.Ticks;
-            seed ^= (int) Time.unscaledTime;
+            seed ^= (int)System.DateTime.Now.Ticks;
+            seed ^= (int)Time.unscaledTime;
             seed &= int.MaxValue; //强制归正数
         }
 
@@ -145,6 +151,9 @@ public class HexMapGenerator : MonoBehaviour
 
         //创建岛屿
         CreateLand();
+
+        //侵蚀打磨边缘
+        ErodeLand();
 
         //创建地图类型
         SetTerrainType();
@@ -180,78 +189,78 @@ public class HexMapGenerator : MonoBehaviour
         {
             //1或者其他
             default:
-            {
-                region.xMin = mapBorderX;
-                region.xMax = countX - mapBorderX;
-                region.zMin = mapBorderZ;
-                region.zMax = countZ - mapBorderZ;
-                regions.Add(region);
-                break;
-            }
-            case 2:
-            {
-                if (Random.value < 0.5f)
                 {
-                    var halfX = countX / 2;
+                    region.xMin = mapBorderX;
+                    region.xMax = countX - mapBorderX;
+                    region.zMin = mapBorderZ;
+                    region.zMax = countZ - mapBorderZ;
+                    regions.Add(region);
+                    break;
+                }
+            case 2:
+                {
+                    if (Random.value < 0.5f)
+                    {
+                        var halfX = countX / 2;
+                        region.xMin = mapBorderX;
+                        region.xMax = halfX - regionBorder;
+                        region.zMin = mapBorderZ;
+                        region.zMax = countZ - mapBorderZ;
+                        regions.Add(region);
+                        region.xMin = halfX + regionBorder;
+                        region.xMax = countX - mapBorderX;
+                        regions.Add(region);
+                    }
+                    else
+                    {
+                        var halfZ = countZ / 2;
+                        region.xMin = mapBorderX;
+                        region.xMax = countX - mapBorderX;
+                        region.zMin = mapBorderZ;
+                        region.zMax = halfZ - regionBorder;
+                        regions.Add(region);
+                        region.zMin = halfZ + regionBorder;
+                        region.zMax = countZ - mapBorderZ;
+                        regions.Add(region);
+                    }
+
+                    break;
+                }
+            case 3:
+                {
+                    int x_1_3 = countX / 3, x_2_3 = x_1_3 * 2;
+                    region.xMin = mapBorderX;
+                    region.xMax = x_1_3 - regionBorder;
+                    region.zMin = mapBorderZ;
+                    region.zMax = countZ - mapBorderZ;
+                    regions.Add(region);
+                    region.xMin = x_1_3 + regionBorder;
+                    region.xMax = x_2_3 - regionBorder;
+                    regions.Add(region);
+                    region.xMin = x_2_3 + regionBorder;
+                    region.xMax = countX - mapBorderX;
+                    regions.Add(region);
+                    break;
+                }
+            case 4:
+                {
+                    int halfX = countX / 2, halfZ = countZ / 2;
                     region.xMin = mapBorderX;
                     region.xMax = halfX - regionBorder;
                     region.zMin = mapBorderZ;
-                    region.zMax = countZ - mapBorderZ;
+                    region.zMax = halfZ - regionBorder;
                     regions.Add(region);
                     region.xMin = halfX + regionBorder;
                     region.xMax = countX - mapBorderX;
                     regions.Add(region);
-                }
-                else
-                {
-                    var halfZ = countZ / 2;
-                    region.xMin = mapBorderX;
-                    region.xMax = countX - mapBorderX;
-                    region.zMin = mapBorderZ;
-                    region.zMax = halfZ - regionBorder;
-                    regions.Add(region);
                     region.zMin = halfZ + regionBorder;
                     region.zMax = countZ - mapBorderZ;
                     regions.Add(region);
+                    region.xMin = mapBorderX;
+                    region.xMax = countX - regionBorder;
+                    regions.Add(region);
+                    break;
                 }
-
-                break;
-            }
-            case 3:
-            {
-                int x_1_3 = countX / 3, x_2_3 = x_1_3 * 2;
-                region.xMin = mapBorderX;
-                region.xMax = x_1_3 - regionBorder;
-                region.zMin = mapBorderZ;
-                region.zMax = countZ - mapBorderZ;
-                regions.Add(region);
-                region.xMin = x_1_3 + regionBorder;
-                region.xMax = x_2_3 - regionBorder;
-                regions.Add(region);
-                region.xMin = x_2_3 + regionBorder;
-                region.xMax = countX - mapBorderX;
-                regions.Add(region);
-                break;
-            }
-            case 4:
-            {
-                int halfX = countX / 2, halfZ = countZ / 2;
-                region.xMin = mapBorderX;
-                region.xMax = halfX - regionBorder;
-                region.zMin = mapBorderZ;
-                region.zMax = halfZ - regionBorder;
-                regions.Add(region);
-                region.xMin = halfX + regionBorder;
-                region.xMax = countX - mapBorderX;
-                regions.Add(region);
-                region.zMin = halfZ + regionBorder;
-                region.zMax = countZ - mapBorderZ;
-                regions.Add(region);
-                region.xMin = mapBorderX;
-                region.xMax = countX - regionBorder;
-                regions.Add(region);
-                break;
-            }
         }
     }
 
@@ -436,5 +445,110 @@ public class HexMapGenerator : MonoBehaviour
                 cell.TerrainTypeIndex = cell.Elevation - cell.WaterLevel;
             }
         }
+    }
+
+    /// <summary>
+    /// 侵蚀打磨边缘
+    /// </summary>
+    private void ErodeLand()
+    {
+        var erodibleCells = ListPool<HexCell>.Get();
+        for (int i = 0; i < cellCount; i++)
+        {
+            HexCell cell = HexGrid.Instance.GetCell(i);
+            if (IsErodible(cell))
+            {
+                erodibleCells.Add(cell);
+            }
+        }
+        int targetErodibleCount = (int)(erodibleCells.Count * (100 - erosionPercentage) * 0.01f);
+
+        while (erodibleCells.Count > targetErodibleCount)
+        {
+            int index = Random.Range(0, erodibleCells.Count);
+            HexCell cell = erodibleCells[index];
+            HexCell targetCell = GetErosionTarget(cell);
+
+            cell.Elevation -= 1;
+            targetCell.Elevation += 1;
+            var maxIndex = erodibleCells.Count - 1;
+            //如果高度还过高
+            if (!IsErodible(cell))
+            {
+                erodibleCells[index] = erodibleCells[maxIndex];
+                erodibleCells.RemoveAt(maxIndex);
+            }
+
+            //因为这个当前细胞的降低,导致的周围可能会高峰
+            for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
+            {
+                HexCell neighbor = cell.GetNeighbor(d);
+                if (neighbor && neighbor.Elevation == cell.Elevation + 2
+                    && !erodibleCells.Contains(neighbor))
+                {
+                    erodibleCells.Add(neighbor);
+                }
+            }
+
+            //因为转移Cell被抬高了,可能引起高峰
+            if (IsErodible(targetCell) && !erodibleCells.Contains(targetCell))
+            {
+                erodibleCells.Add(targetCell);
+            }
+
+            //抬高了转移细胞,可能转移细胞周围的细胞就不会是高峰了
+            for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
+            {
+                HexCell neighbor = targetCell.GetNeighbor(d);
+                if (neighbor && neighbor != cell && !IsErodible(neighbor)
+                    && neighbor.Elevation == targetCell.Elevation + 1)
+                {
+                    erodibleCells.Remove(neighbor);
+                }
+            }
+        }
+
+        ListPool<HexCell>.Add(erodibleCells);
+    }
+
+    /// <summary>
+    /// 寻找容易侵蚀的对象,比如高峰
+    /// 只要比任意一处低X 高峰
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <returns></returns>
+    private bool IsErodible(HexCell cell)
+    {
+        int erodibleElevation = cell.Elevation - 2;
+        for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
+        {
+            HexCell neighbor = cell.GetNeighbor(d);
+            if (neighbor && neighbor.Elevation <= erodibleElevation)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 被侵蚀之后,转移的高度的cell
+    /// </summary>
+    private HexCell GetErosionTarget(HexCell cell)
+    {
+        var candiates = ListPool<HexCell>.Get();
+        int erodibleElevation = cell.Elevation - 2;
+        for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
+        {
+            HexCell neighbor = cell.GetNeighbor(d);
+            if (neighbor && neighbor.Elevation <= erodibleElevation)
+            {
+                candiates.Add(neighbor);
+            }
+        }
+
+        HexCell target = candiates[Random.Range(0, candiates.Count)];
+        ListPool<HexCell>.Add(candiates);
+        return target;
     }
 }
