@@ -149,6 +149,14 @@ public class HexCellShaderData : MonoBehaviour
         return stillUpdating;
     }
 
+    public void SetMapData(HexCell cell,float data)
+    {
+        data = Mathf.Clamp01(data);
+        //因为探索用了255,所以这里用254
+        cellTextureData[cell.Index].b = (byte)(data * 254f);
+        enabled = true;
+    }
+
     /// <summary>
     /// 高度视野改变
     /// </summary>

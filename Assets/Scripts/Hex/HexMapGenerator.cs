@@ -102,10 +102,23 @@ public class HexMapGenerator : MonoBehaviour
     [Range(0, 100)]
     public int erosionPercentage = 50;
 
+    /// <summary>
+    /// 蒸发多少水分
+    /// </summary>
+    [Range(0,1f)]
+    public float evaporation = 0.5f;
+
+    /// <summary>
+    /// 形成云后降雨的量
+    /// </summary>
+    [Range(0f,1f)]
+    public float precipitationFactor = 0.25f;
+
     private int cellCount; //一共有几个细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
     private int searchFrontierPhase; //随机生成寻路值
     private List<MapRegion> regions; //陆地生成的XZ的边界
+    private List<ClimateData> climate = new List<ClimateData>();//天气系统
 
     private void Awake()
     {
@@ -154,6 +167,9 @@ public class HexMapGenerator : MonoBehaviour
 
         //侵蚀打磨边缘
         ErodeLand();
+
+        //创建天气系统
+        CreateClimate();
 
         //创建地图类型
         SetTerrainType();
@@ -443,6 +459,7 @@ public class HexMapGenerator : MonoBehaviour
             if (!cell.IsUnderwater)
             {
                 cell.TerrainTypeIndex = cell.Elevation - cell.WaterLevel;
+                cell.SetMapData(climate[i].clouds);
             }
         }
     }
@@ -550,5 +567,59 @@ public class HexMapGenerator : MonoBehaviour
         HexCell target = candiates[Random.Range(0, candiates.Count)];
         ListPool<HexCell>.Add(candiates);
         return target;
+    }
+
+    /// <summary>
+    /// 创建天气系统
+    /// </summary>
+    private void CreateClimate()
+    {
+        climate.Clear();
+        ClimateData initialData = new ClimateData();
+        for(int i=0;i<cellCount;i++)
+        {
+            climate.Add(initialData);
+        }
+        for(int cycle = 0;cycle<40;cycle++)
+        {
+            for (int i = 0; i < cellCount; i++)
+            {
+                EvolveClimate(i);
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// 蒸发水分
+    /// </summary>
+    private void EvolveClimate(int cellIndex)
+    {
+        HexCell cell = HexGrid.Instance.GetCell(cellIndex);
+        ClimateData cellClimate = climate[cellIndex];
+        if(cell.IsUnderwater)
+        {
+            cellClimate.clouds += evaporation;
+        }
+
+        float precipitation = cellClimate.clouds * precipitationFactor;
+        cellClimate.clouds -= precipitation;
+
+        float cloudDispersal = cellClimate.clouds * (1f / 6f);
+        for(HexDirection d =HexDirection.NE;d<=HexDirection.NW;d++)
+        {
+            HexCell neightbor = cell.GetNeighbor(d);
+            if(!neightbor)
+            {
+                continue;
+            }
+
+            ClimateData neightborClimate = climate[neightbor.Index];
+            neightborClimate.clouds += cloudDispersal;
+            climate[neightbor.Index] = neightborClimate;
+            cellClimate.clouds -= cloudDispersal;
+        }
+
+        climate[cellIndex] = cellClimate;
     }
 }

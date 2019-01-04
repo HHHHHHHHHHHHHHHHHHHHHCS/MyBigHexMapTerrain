@@ -3000,7 +3000,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useFixedSeed: 1
-  seed: 123456
+  seed: 1208905299
   waterLevel: 3
   mapBorderX: 10
   mapBorderZ: 10
@@ -3015,6 +3015,8 @@ MonoBehaviour:
   chunkSizeMax: 100
   landPercentage: 0.4
   erosionPercentage: 50
+  evaporation: 0.5
+  precipitationFactor: 0.25
 --- !u!4 &519854618
 Transform:
   m_ObjectHideFlags: 0
@@ -5840,7 +5842,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &821437671
 GameObject:
   m_ObjectHideFlags: 0
@@ -8906,7 +8908,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 255, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1236950084
@@ -10518,7 +10520,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1431673201
 GameObject:
   m_ObjectHideFlags: 0
@@ -14617,7 +14619,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1976043398
 GameObject:
   m_ObjectHideFlags: 0
@@ -15141,7 +15143,6 @@ GameObject:
   - component: {fileID: 2016809809}
   - component: {fileID: 2016809808}
   - component: {fileID: 2016809807}
-  - component: {fileID: 2016809811}
   m_Layer: 5
   m_Name: UIRoot
   m_TagString: Untagged
@@ -15233,19 +15234,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &2016809811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2016809806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: f890089106d4b8d458bc74dd8b3b92af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2022743070
 GameObject:
   m_ObjectHideFlags: 0
@@ -15664,7 +15652,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &2115085970
 GameObject:
   m_ObjectHideFlags: 0
