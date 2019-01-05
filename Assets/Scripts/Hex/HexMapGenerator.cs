@@ -32,9 +32,54 @@ public class HexMapGenerator : MonoBehaviour
     public int seed;
 
     /// <summary>
+    /// 随机生成地形的圆形程度,越小越圆
+    /// </summary>
+    [Range(0f, 0.5f)]
+    public float jitterProbability = 0.25f;
+
+    /// <summary>
+    /// 生成随机地形的最每块的最小的cell的数量
+    /// </summary>
+    [Range(20, 200)]
+    public int chunkSizeMin = 30;
+
+    /// <summary>
+    /// 生成随机地形的每块最大的cell数量
+    /// </summary>
+    [Range(20, 200)]
+    public int chunkSizeMax = 100;
+
+    /// <summary>
+    /// 生成孤立悬崖的概率,即高度+1/+2
+    /// </summary>
+    [Range(0f, 1f)]
+    public float highRiseProbability = 0.25f;
+
+    /// <summary>
+    /// 地形下降的概率
+    /// </summary>
+    [Range(0, 0.4f)] public float sinkProbability = 0.2f;
+
+    /// <summary>
+    /// 陆地的块的百分比
+    /// </summary>
+    [Range(0.05f, 0.95f)] public float landPercentage = 0.5f;
+
+
+    /// <summary>
     /// 水的高度
     /// </summary>
     [Range(1, 5)] public int waterLevel = 3;
+
+    /// <summary>
+    /// 最低的的高度
+    /// </summary>
+    [Range(-4, 0)] public int elevationMinimum = -2;
+
+    /// <summary>
+    /// 最高的高度
+    /// </summary>
+    [Range(6, 10)] public int elevationMaximum = 8;
 
     /// <summary>
     /// 陆地生成的X边界
@@ -49,52 +94,12 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 每小个地形块的边界
     /// </summary>
-    [Range(0, 0)] public int regionBorder = 5;
+    [Range(0, 10)] public int regionBorder = 5;
 
     /// <summary>
     /// 最多生成几个区域块
     /// </summary>
     [Range(1, 4)] public int regionCount = 1;
-
-    /// <summary>
-    /// 最低的的高度
-    /// </summary>
-    [Range(-4, 0)] public int elevationMinimum = -2;
-
-    /// <summary>
-    /// 最高的高度
-    /// </summary>
-    [Range(6, 10)] public int elevationMaximum = 8;
-
-    /// <summary>
-    /// 生成孤立悬崖的概率,即高度+1/+2
-    /// </summary>
-    [Range(0f, 1f)] public float highRiseProbability = 0.25f;
-
-    /// <summary>
-    /// 地形下降的概率
-    /// </summary>
-    [Range(0, 0.4f)] public float sinkProbability = 0.2f;
-
-    /// <summary>
-    /// 随机生成地形的圆形程度,越小越圆
-    /// </summary>
-    [Range(0f, 0.5f)] public float jitterProbability = 0.25f;
-
-    /// <summary>
-    /// 生成随机地形的最每块的最小的cell的数量
-    /// </summary>
-    [Range(20, 200)] public int chunkSizeMin = 30;
-
-    /// <summary>
-    /// 生成随机地形的每块最大的cell数量
-    /// </summary>
-    [Range(20, 200)] public int chunkSizeMax = 100;
-
-    /// <summary>
-    /// 陆地的块的百分比
-    /// </summary>
-    [Range(0.05f, 0.95f)] public float landPercentage = 0.5f;
 
     /// <summary>
     /// 侵蚀打磨程度
@@ -105,14 +110,36 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 蒸发多少水分
     /// </summary>
-    [Range(0,1f)]
-    public float evaporation = 0.5f;
+    [Range(0, 1f)]
+    public float evaporationFactor = 0.5f;
 
     /// <summary>
     /// 形成云后降雨的量
     /// </summary>
-    [Range(0f,1f)]
+    [Range(0f, 1f)]
     public float precipitationFactor = 0.25f;
+
+    /// <summary>
+    /// 水土流失(高低地)
+    /// </summary>
+    [Range(0f, 1f)]
+    public float runoffFactor = 0.25f;
+
+    /// <summary>
+    /// 渗漏(平级)
+    /// </summary>
+    [Range(0f, 1f)]
+    public float seepageFactor = 0.125f;
+
+    /// <summary>
+    /// 风的方向
+    /// </summary>
+    public HexDirection windDirection = HexDirection.NW;
+
+    /// <summary>
+    /// 风的等级
+    /// </summary>
+    public float windStrength = 4f;
 
     private int cellCount; //一共有几个细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
@@ -139,7 +166,6 @@ public class HexMapGenerator : MonoBehaviour
             seed ^= (int)Time.unscaledTime;
             seed &= int.MaxValue; //强制归正数
         }
-
         Random.InitState(seed);
 
         //-----生成基础地形
@@ -156,7 +182,7 @@ public class HexMapGenerator : MonoBehaviour
         //-----全部初始化为水
         for (int i = 0; i < cellCount; i++)
         {
-            HexGrid.Instance.GetCell(i).WaterLevel = waterLevel;
+            grid.GetCell(i).WaterLevel = waterLevel;
         }
 
         //陆地生成的边界
@@ -201,6 +227,7 @@ public class HexMapGenerator : MonoBehaviour
         var grid = HexGrid.Instance;
         MapRegion region;
         int countX = grid.cellCountX, countZ = grid.cellCountZ;
+        //-----地形的规则裁块-----
         switch (regionCount)
         {
             //1或者其他
@@ -281,6 +308,42 @@ public class HexMapGenerator : MonoBehaviour
     }
 
     /// <summary>
+    /// 创建岛屿,里面有上升块和下降块
+    /// </summary>
+    private void CreateLand()
+    {
+        int landBudget = Mathf.RoundToInt(cellCount * landPercentage);
+        for (int guard = 0; guard < 10000; guard++)
+        {
+            bool isSink = Random.value < sinkProbability;
+            foreach (var region in regions)
+            {
+                //这个块有几个cell
+                int chunkSize = Random.Range(chunkSizeMin, chunkSizeMax - 1);
+
+                //根据概率是否要上升下降块,并且得到剩下的陆地的块
+                if (isSink)
+                {
+                    landBudget = SinkTerrain(chunkSize, landBudget, region);
+                }
+                else
+                {
+                    landBudget = RaiseTerrain(chunkSize, landBudget, region);
+                    if (landBudget == 0)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (landBudget > 0)
+        {
+            Debug.Log("无法生成这么多的陆地的块,还剩下" + landBudget.ToString());
+        }
+    }
+
+    /// <summary>
     /// 上升地形
     /// </summary>
     /// <param name="chunkSize">要上升的块</param>
@@ -315,8 +378,8 @@ public class HexMapGenerator : MonoBehaviour
 
             current.Elevation = newElevation;
 
-            //如果改变的这块高度出水了,则水的块-1
-            //如果水的块为0,则跳出上升块的while
+            //如果改变的这块高度出水了,则陆地的块-1
+            //如果陆地的块为0,则跳出上升块的while
             if (originalElevation < waterLevel
                 && newElevation >= waterLevel
                 && --budget == 0)
@@ -400,71 +463,6 @@ public class HexMapGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 得到一个随机的cell
-    /// </summary>
-    /// <returns></returns>
-    private HexCell GetRandomCell(MapRegion region)
-    {
-        var grid = HexGrid.Instance;
-
-        return grid.GetCell(
-            Random.Range(region.xMin, region.xMax)
-            , Random.Range(region.zMin, region.zMax));
-    }
-
-    /// <summary>
-    /// 创建岛屿,里面有上升块和下降块
-    /// </summary>
-    private void CreateLand()
-    {
-        int landBudget = Mathf.RoundToInt(cellCount * landPercentage);
-        for (int guard = 0; landBudget > 0 && guard < 1000; guard++)
-        {
-            bool isSink = Random.value < sinkProbability;
-            foreach (var region in regions)
-            {
-                //这个块有几个cell
-                int chunkSize = Random.Range(chunkSizeMin, chunkSizeMax - 1);
-
-                //根据概率是否要上升下降块,并且得到剩下的水的块
-                if (isSink)
-                {
-                    landBudget = SinkTerrain(chunkSize, landBudget, region);
-                }
-                else
-                {
-                    landBudget = RaiseTerrain(chunkSize, landBudget, region);
-                    if (landBudget == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (landBudget > 0)
-        {
-            Debug.Log("无法生成这么多的陆地的块,还剩下" + landBudget.ToString());
-        }
-    }
-
-    /// <summary>
-    /// 根据高度设置地形的种类
-    /// </summary>
-    private void SetTerrainType()
-    {
-        for (int i = 0; i < cellCount; i++)
-        {
-            HexCell cell = HexGrid.Instance.GetCell(i);
-            if (!cell.IsUnderwater)
-            {
-                cell.TerrainTypeIndex = cell.Elevation - cell.WaterLevel;
-                cell.SetMapData(climate[i].clouds);
-            }
-        }
-    }
-
-    /// <summary>
     /// 侵蚀打磨边缘
     /// </summary>
     private void ErodeLand()
@@ -478,16 +476,18 @@ public class HexMapGenerator : MonoBehaviour
                 erodibleCells.Add(cell);
             }
         }
+        //要打磨的块的个数
         int targetErodibleCount = (int)(erodibleCells.Count * (100 - erosionPercentage) * 0.01f);
 
         while (erodibleCells.Count > targetErodibleCount)
         {
             int index = Random.Range(0, erodibleCells.Count);
-            HexCell cell = erodibleCells[index];
-            HexCell targetCell = GetErosionTarget(cell);
+            HexCell cell = erodibleCells[index];//当前侵蚀的cell
+            HexCell targetCell = GetErosionTarget(cell);//被转移的目标
 
             cell.Elevation -= 1;
             targetCell.Elevation += 1;
+            //放到最后移除,可以提升效率
             var maxIndex = erodibleCells.Count - 1;
             //如果高度还过高
             if (!IsErodible(cell))
@@ -517,8 +517,9 @@ public class HexMapGenerator : MonoBehaviour
             for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
                 HexCell neighbor = targetCell.GetNeighbor(d);
-                if (neighbor && neighbor != cell && !IsErodible(neighbor)
-                    && neighbor.Elevation == targetCell.Elevation + 1)
+                if (neighbor && neighbor != cell
+                    && neighbor.Elevation == targetCell.Elevation + 1
+                    && !IsErodible(neighbor))
                 {
                     erodibleCells.Remove(neighbor);
                 }
@@ -530,7 +531,7 @@ public class HexMapGenerator : MonoBehaviour
 
     /// <summary>
     /// 寻找容易侵蚀的对象,比如高峰
-    /// 只要比任意一处低X 高峰
+    /// 只要比任意一处低 X 高峰
     /// </summary>
     /// <param name="cell"></param>
     /// <returns></returns>
@@ -569,6 +570,7 @@ public class HexMapGenerator : MonoBehaviour
         return target;
     }
 
+
     /// <summary>
     /// 创建天气系统
     /// </summary>
@@ -576,11 +578,11 @@ public class HexMapGenerator : MonoBehaviour
     {
         climate.Clear();
         ClimateData initialData = new ClimateData();
-        for(int i=0;i<cellCount;i++)
+        for (int i = 0; i < cellCount; i++)
         {
             climate.Add(initialData);
         }
-        for(int cycle = 0;cycle<40;cycle++)
+        for (int cycle = 0; cycle < 40; cycle++)
         {
             for (int i = 0; i < cellCount; i++)
             {
@@ -591,35 +593,110 @@ public class HexMapGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 蒸发水分
+    /// 蒸发水分和高低地的水土流失
     /// </summary>
     private void EvolveClimate(int cellIndex)
     {
         HexCell cell = HexGrid.Instance.GetCell(cellIndex);
         ClimateData cellClimate = climate[cellIndex];
-        if(cell.IsUnderwater)
-        {
+
+        if (cell.IsUnderwater)
+        {//是水,水分为1,形成云
+            cellClimate.moisture = 1f;
+            cellClimate.clouds += evaporationFactor;
+        }
+        else
+        {//是陆地,计算土里水分*挥发比例
+            float evaporation = cellClimate.moisture * evaporationFactor;
+            cellClimate.moisture -= evaporation;
             cellClimate.clouds += evaporation;
         }
 
+        //云的凝结成水分
         float precipitation = cellClimate.clouds * precipitationFactor;
         cellClimate.clouds -= precipitation;
+        cellClimate.moisture += precipitation;
 
-        float cloudDispersal = cellClimate.clouds * (1f / 6f);
-        for(HexDirection d =HexDirection.NE;d<=HexDirection.NW;d++)
+        //越高越容易凝结降水,所以雨水不能超过一定百分比高度
+        float cloudMaximum = 1f - cell.ViewElevation / (elevationMaximum + 1f);
+        if (cellClimate.clouds > cloudMaximum)
         {
-            HexCell neightbor = cell.GetNeighbor(d);
-            if(!neightbor)
+            cellClimate.moisture += cellClimate.clouds - cloudMaximum;
+            cellClimate.clouds = cloudMaximum;
+        }
+
+        //云在风的反方向扩散
+        HexDirection mainDispersalDirection = windDirection.Opposite();
+        //云的转移
+        float cloudDispersal = cellClimate.clouds * (1f / (5f + windStrength));
+        //高地底的转移
+        float runoff = cellClimate.moisture * runoffFactor * (1f / 6f);
+        //平级的转移
+        float seepage = cellClimate.moisture * seepageFactor * (1f / 6f);
+        for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
+        {
+            HexCell neighbor = cell.GetNeighbor(d);
+            if (!neighbor)
             {
                 continue;
             }
 
-            ClimateData neightborClimate = climate[neightbor.Index];
-            neightborClimate.clouds += cloudDispersal;
-            climate[neightbor.Index] = neightborClimate;
-            cellClimate.clouds -= cloudDispersal;
-        }
+            ClimateData neighborClimate = climate[neighbor.Index];
 
+            //根据风向转移云
+            if (d == mainDispersalDirection)
+            {
+                cloudDispersal *= windStrength;
+            }
+            neighborClimate.clouds += cloudDispersal;
+
+            //根据视野高度,高低地的关系,高低转移,还是平级转移
+            int elevationDelta = neighbor.ViewElevation - cell.ViewElevation;
+            if (elevationDelta < 0)
+            {
+                cellClimate.moisture -= runoff;
+                neighborClimate.moisture += runoff;
+            }
+            else if (elevationDelta == 0)
+            {
+                cellClimate.moisture -= seepage;
+                neighborClimate.moisture += seepage;
+            }
+
+            climate[neighbor.Index] = neighborClimate;//设置邻居
+            
+        }
+        cellClimate.clouds = 0;//设置自己
         climate[cellIndex] = cellClimate;
+    }
+
+
+    /// <summary>
+    /// 根据高度设置地形的种类
+    /// </summary>
+    private void SetTerrainType()
+    {
+        for (int i = 0; i < cellCount; i++)
+        {
+            HexCell cell = HexGrid.Instance.GetCell(i);
+            if (!cell.IsUnderwater)
+            {
+                cell.TerrainTypeIndex = cell.Elevation - cell.WaterLevel;
+            }
+            cell.SetMapData(climate[i].clouds);
+        }
+    }
+
+    /// <summary>
+    /// 得到一个随机的cell
+    /// </summary>
+    /// <returns></returns>
+    private HexCell GetRandomCell(MapRegion region)
+    {
+        var grid = HexGrid.Instance;
+
+        return grid.GetCell(
+            Random.Range(region.xMin, region.xMax)
+            , Random.Range(region.zMin, region.zMax));
     }
 }
