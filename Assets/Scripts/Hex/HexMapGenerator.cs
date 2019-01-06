@@ -7,6 +7,19 @@ using UnityEngine;
 /// </summary>
 public class HexMapGenerator : MonoBehaviour
 {
+    //用于天气
+    public struct ClimateData
+    {
+        /// <summary>
+        /// 云
+        /// </summary>
+        public float clouds;
+        /// <summary>
+        /// 湿气
+        /// </summary>
+        public float moisture;
+    }
+
     /// <summary>
     /// 陆地生成的XZ的边界
     /// </summary>
@@ -108,6 +121,12 @@ public class HexMapGenerator : MonoBehaviour
     public int erosionPercentage = 50;
 
     /// <summary>
+    /// 土地初始的水分
+    /// </summary>
+    [Range(0f, 1f)]
+    public float startingMoisture = 0.1f;
+
+    /// <summary>
     /// 蒸发多少水分
     /// </summary>
     [Range(0, 1f)]
@@ -141,11 +160,13 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     public float windStrength = 4f;
 
+
     private int cellCount; //一共有几个细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
     private int searchFrontierPhase; //随机生成寻路值
     private List<MapRegion> regions; //陆地生成的XZ的边界
     private List<ClimateData> climate = new List<ClimateData>();//天气系统
+    private List<ClimateData> nextClimate = new List<ClimateData>();//下一次的天启系统
 
     private void Awake()
     {
@@ -554,19 +575,19 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     private HexCell GetErosionTarget(HexCell cell)
     {
-        var candiates = ListPool<HexCell>.Get();
+        var candidates = ListPool<HexCell>.Get();
         int erodibleElevation = cell.Elevation - 2;
         for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
         {
             HexCell neighbor = cell.GetNeighbor(d);
             if (neighbor && neighbor.Elevation <= erodibleElevation)
             {
-                candiates.Add(neighbor);
+                candidates.Add(neighbor);
             }
         }
 
-        HexCell target = candiates[Random.Range(0, candiates.Count)];
-        ListPool<HexCell>.Add(candiates);
+        HexCell target = candidates[Random.Range(0, candidates.Count)];
+        ListPool<HexCell>.Add(candidates);
         return target;
     }
 
@@ -577,10 +598,14 @@ public class HexMapGenerator : MonoBehaviour
     private void CreateClimate()
     {
         climate.Clear();
+        nextClimate.Clear();
         ClimateData initialData = new ClimateData();
+        initialData.moisture = startingMoisture;
+        ClimateData clearData = new ClimateData();
         for (int i = 0; i < cellCount; i++)
         {
             climate.Add(initialData);
+            nextClimate.Add(clearData);
         }
         for (int cycle = 0; cycle < 40; cycle++)
         {
@@ -588,6 +613,10 @@ public class HexMapGenerator : MonoBehaviour
             {
                 EvolveClimate(i);
             }
+            //交换天启系统
+            var swap = climate;
+            climate = nextClimate;
+            nextClimate = swap;
         }
 
     }
@@ -641,14 +670,18 @@ public class HexMapGenerator : MonoBehaviour
                 continue;
             }
 
-            ClimateData neighborClimate = climate[neighbor.Index];
+            ClimateData neighborClimate = nextClimate[neighbor.Index];
 
             //根据风向转移云
             if (d == mainDispersalDirection)
             {
-                cloudDispersal *= windStrength;
+                neighborClimate.clouds += cloudDispersal * windStrength;
             }
-            neighborClimate.clouds += cloudDispersal;
+            else
+            {
+                neighborClimate.clouds += cloudDispersal;
+            }
+            
 
             //根据视野高度,高低地的关系,高低转移,还是平级转移
             int elevationDelta = neighbor.ViewElevation - cell.ViewElevation;
@@ -663,11 +696,17 @@ public class HexMapGenerator : MonoBehaviour
                 neighborClimate.moisture += seepage;
             }
 
-            climate[neighbor.Index] = neighborClimate;//设置邻居
-            
+            nextClimate[neighbor.Index] = neighborClimate;//设置邻居
         }
-        cellClimate.clouds = 0;//设置自己
-        climate[cellIndex] = cellClimate;
+        //设置湿气数据进下一次缓冲
+        ClimateData nextCellClimate = nextClimate[cellIndex];
+        nextCellClimate.moisture += cellClimate.moisture;
+        if (nextCellClimate.moisture > 1f)
+        {
+            nextCellClimate.moisture = 1f;
+        }
+        nextClimate[cellIndex] = nextCellClimate;
+        climate[cellIndex] = new ClimateData();
     }
 
 
@@ -679,11 +718,37 @@ public class HexMapGenerator : MonoBehaviour
         for (int i = 0; i < cellCount; i++)
         {
             HexCell cell = HexGrid.Instance.GetCell(i);
+            float moisture = climate[i].moisture;
+            int type = 0;
             if (!cell.IsUnderwater)
             {
-                cell.TerrainTypeIndex = cell.Elevation - cell.WaterLevel;
+                if (moisture < 0.05f)
+                {//沙漠
+                    type = 4;
+                }
+                else if (moisture < 0.12f)
+                {//雪山
+                    type = 0;
+                }
+                else if (moisture < 0.28f)
+                {//石头
+                    type = 3;
+                }
+                else if (moisture < 0.85f)
+                {//草地
+                    type = 1;
+                }
+                else
+                {//泥土
+                    type = 2;
+                }
             }
-            cell.SetMapData(climate[i].clouds);
+            else
+            {//水下泥土
+                type = 2;
+            }
+            cell.TerrainTypeIndex = type;
+            cell.SetMapData(moisture);
         }
     }
 
