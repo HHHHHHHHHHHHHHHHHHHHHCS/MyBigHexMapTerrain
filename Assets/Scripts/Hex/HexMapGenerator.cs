@@ -160,13 +160,20 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     public float windStrength = 4f;
 
+    /// <summary>
+    /// 河流的预算
+    /// </summary>
+    [Range(0, 20)]
+    public float riverPercentage = 10;
 
-    private int cellCount; //一共有几个细胞
+
+    private int cellCount, landCells; //一共有几个细胞,多少个土地细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
     private int searchFrontierPhase; //随机生成寻路值
     private List<MapRegion> regions; //陆地生成的XZ的边界
     private List<ClimateData> climate = new List<ClimateData>();//天气系统
     private List<ClimateData> nextClimate = new List<ClimateData>();//下一次的天启系统
+    private List<HexDirection> flowDirections = new List<HexDirection>();//河流储存的方向
 
     private void Awake()
     {
@@ -217,6 +224,9 @@ public class HexMapGenerator : MonoBehaviour
 
         //创建天气系统
         CreateClimate();
+
+        //创建河流系统
+        CreateRivers();
 
         //创建地图类型
         SetTerrainType();
@@ -334,6 +344,7 @@ public class HexMapGenerator : MonoBehaviour
     private void CreateLand()
     {
         int landBudget = Mathf.RoundToInt(cellCount * landPercentage);
+        landCells = landBudget;
         for (int guard = 0; guard < 10000; guard++)
         {
             bool isSink = Random.value < sinkProbability;
@@ -361,6 +372,7 @@ public class HexMapGenerator : MonoBehaviour
         if (landBudget > 0)
         {
             Debug.Log("无法生成这么多的陆地的块,还剩下" + landBudget.ToString());
+            landCells -= landBudget;
         }
     }
 
@@ -681,7 +693,7 @@ public class HexMapGenerator : MonoBehaviour
             {
                 neighborClimate.clouds += cloudDispersal;
             }
-            
+
 
             //根据视野高度,高低地的关系,高低转移,还是平级转移
             int elevationDelta = neighbor.ViewElevation - cell.ViewElevation;
@@ -750,6 +762,97 @@ public class HexMapGenerator : MonoBehaviour
             cell.TerrainTypeIndex = type;
             cell.SetMapData(moisture);
         }
+    }
+
+    /// <summary>
+    /// 创建河流
+    /// </summary>
+    private void CreateRivers()
+    {
+        var riverOrigins = ListPool<HexCell>.Get();
+        for (int i = 0; i < cellCount; i++)
+        {
+            HexCell cell = HexGrid.Instance.GetCell(i);
+            if (cell.IsUnderwater)
+            {
+                continue;
+            }
+
+            ClimateData data = climate[i];
+            float weight = data.moisture * (cell.Elevation - waterLevel)
+                / (elevationMaximum - waterLevel);
+            //权重越高随机到的概率越高
+            if (weight > 0.75f)
+            {
+                riverOrigins.Add(cell);
+                riverOrigins.Add(cell);
+            }
+            if (weight > 0.5f)
+            {
+                riverOrigins.Add(cell);
+            }
+            if (weight > 0.25f)
+            {
+                riverOrigins.Add(cell);
+            }
+        }
+
+        //生成河流
+        int riverBudget = Mathf.RoundToInt(landCells * riverPercentage * 0.01f);
+        while (riverBudget > 0 && riverOrigins.Count > 0)
+        {
+            int index = Random.Range(0, riverOrigins.Count);
+            int lastIndex = riverOrigins.Count - 1;
+            HexCell origin = riverOrigins[index];
+            //删除
+            riverOrigins[index] = riverOrigins[lastIndex];
+            riverOrigins.RemoveAt(lastIndex);
+
+            if (!origin.HasRiver)
+            {
+                riverBudget -= CreateRiver(origin);
+            }
+        }
+        if (riverBudget > 0)
+        {
+            Debug.Log("河流的方块不够");
+        }
+
+        ListPool<HexCell>.Add(riverOrigins);
+    }
+
+    /// <summary>
+    /// 创建河流
+    /// </summary>
+    private int CreateRiver(HexCell origin)
+    {
+        int length = 1;
+        HexCell cell = origin;
+        while (!cell.IsUnderwater)
+        {
+            flowDirections.Clear();
+            for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
+            {
+                HexCell neighbor = cell.GetNeighbor(d);
+                if (!neighbor || neighbor.HasRiver)
+                {
+                    continue;
+                }
+                flowDirections.Add(d);
+            }
+
+            //如果周围都是水
+            if (flowDirections.Count == 0)
+            {
+                return length > 1 ? length : 0;
+            }
+
+            HexDirection direction = flowDirections[Random.Range(0, flowDirections.Count)];
+            cell.SetOutgoingRiver(direction);
+            length += 1;
+            cell = cell.GetNeighbor(direction);
+        }
+        return length;
     }
 
     /// <summary>
