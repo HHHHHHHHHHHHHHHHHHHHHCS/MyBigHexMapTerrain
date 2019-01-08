@@ -166,6 +166,12 @@ public class HexMapGenerator : MonoBehaviour
     [Range(0, 20)]
     public float riverPercentage = 10;
 
+    /// <summary>
+    /// 生成湖泊的概率
+    /// </summary>
+    [Range(0f, 1f)]
+    public float extraLakeProbability = 0.25f;
+
 
     private int cellCount, landCells; //一共有几个细胞,多少个土地细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
@@ -810,7 +816,22 @@ public class HexMapGenerator : MonoBehaviour
 
             if (!origin.HasRiver)
             {
-                riverBudget -= CreateRiver(origin);
+                bool isValidOrign = true;
+                //避免河流挤在一起
+                for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
+                {
+                    HexCell neighbor = origin.GetNeighbor(d);
+                    if (neighbor && (neighbor.HasRiver || neighbor.IsUnderwater))
+                    {
+                        isValidOrign = false;
+                        break;
+                    }
+                }
+                if (isValidOrign)
+                {
+                    riverBudget -= CreateRiver(origin);
+                }
+
             }
         }
         if (riverBudget > 0)
@@ -827,29 +848,94 @@ public class HexMapGenerator : MonoBehaviour
     private int CreateRiver(HexCell origin)
     {
         int length = 1;
+        HexDirection direction = HexDirection.NE;
         HexCell cell = origin;
         while (!cell.IsUnderwater)
         {
+            int minNeighborElevation = int.MaxValue;
             flowDirections.Clear();
             for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
                 HexCell neighbor = cell.GetNeighbor(d);
-                if (!neighbor || neighbor.HasRiver)
+                if (!neighbor)
                 {
                     continue;
                 }
+
+                if (neighbor.Elevation < minNeighborElevation)
+                {
+                    minNeighborElevation = neighbor.Elevation;
+                }
+
+                if (neighbor == origin || neighbor.HasIncomingRiver)
+                {
+                    continue;
+                }
+
+                int delta = neighbor.Elevation - cell.Elevation;
+                if (delta > 0)
+                {
+                    continue;
+                }
+
+                //头尾河流合并
+                if (neighbor.HasOutgoingRiver)
+                {
+                    cell.SetOutgoingRiver(d);
+                    return length;
+                }
+
+                if (delta < 0)
+                {
+                    flowDirections.Add(d);
+                    flowDirections.Add(d);
+                    flowDirections.Add(d);
+                }
+
+                if (length == 1 || (d != direction.Next2() && d != direction.Previous2()))
+                {
+                    flowDirections.Add(d);
+                }
+
                 flowDirections.Add(d);
             }
+
+
 
             //如果周围都是水
             if (flowDirections.Count == 0)
             {
-                return length > 1 ? length : 0;
+                if (length == 1)
+                {
+                    return 0;
+                }
+
+                //形成湖泊
+                if (minNeighborElevation >= cell.Elevation
+                    && Random.value < extraLakeProbability)
+                {
+                    cell.WaterLevel = minNeighborElevation;
+                    if (minNeighborElevation == cell.Elevation)
+                    {
+                        cell.Elevation = minNeighborElevation - 1;
+                    }
+                }
+                break;
             }
 
-            HexDirection direction = flowDirections[Random.Range(0, flowDirections.Count)];
+
+            direction = flowDirections[Random.Range(0, flowDirections.Count - 1)];
+
             cell.SetOutgoingRiver(direction);
             length += 1;
+
+            //要么自己单独形成湖泊
+            if (minNeighborElevation >= cell.Elevation)
+            {
+                cell.WaterLevel = cell.Elevation;
+                cell.Elevation -= 1;
+            }
+
             cell = cell.GetNeighbor(direction);
         }
         return length;
