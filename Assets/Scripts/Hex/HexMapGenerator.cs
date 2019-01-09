@@ -7,8 +7,10 @@ using UnityEngine;
 /// </summary>
 public class HexMapGenerator : MonoBehaviour
 {
-    //用于天气
-    public struct ClimateData
+    /// <summary>
+    /// 用于天气
+    /// </summary>
+    private struct ClimateData
     {
         /// <summary>
         /// 云
@@ -21,6 +23,16 @@ public class HexMapGenerator : MonoBehaviour
     }
 
     /// <summary>
+    /// 地球模式
+    /// </summary>
+    public enum HemisphereMode
+    {
+        Both,//中间
+        North,//北半球
+        South,//南半球
+    }
+
+    /// <summary>
     /// 陆地生成的XZ的边界
     /// </summary>
     private struct MapRegion
@@ -28,6 +40,50 @@ public class HexMapGenerator : MonoBehaviour
         public int xMin, xMax, zMin, zMax;
     }
 
+    /// <summary>
+    /// 地形索引
+    /// </summary>
+    private struct Biome
+    {
+        public int terrain;
+
+        public Biome(int terrain)
+        {
+            this.terrain = terrain;
+        }
+    }
+
+    //生成生物的概率
+    //温度带越大,水分带越大,地形矩阵随着变化
+    //0:沙漠 1:草地 2:泥土 3:石头 4:雪山
+    //
+    //0.6
+    //温 
+    //度  地形矩阵
+    //带
+    //0/0 水分带 0.85
+
+
+    /// <summary>
+    /// 温度带
+    /// </summary>
+    private static float[] temperatureBands = {0.1f, 0.3f, 0.6f};
+
+    /// <summary>
+    /// 水分带
+    /// </summary>
+    private static float[] moistureBands = {0.12f, 0.28f, 0.85f};
+
+    /// <summary>
+    /// 地形矩阵
+    /// </summary>
+    private static Biome[] biomes =
+    {
+        new Biome(0),new Biome(4),new Biome(4),new Biome(4),
+        new Biome(0),new Biome(2),new Biome(2),new Biome(2),
+        new Biome(0),new Biome(1),new Biome(1),new Biome(1),
+        new Biome(0),new Biome(1),new Biome(1),new Biome(1),
+    };
 
     /// <summary>
     /// 单例化用
@@ -172,6 +228,29 @@ public class HexMapGenerator : MonoBehaviour
     [Range(0f, 1f)]
     public float extraLakeProbability = 0.25f;
 
+    /// <summary>
+    /// 最低温度
+    /// </summary>
+    [Range(0f,1f)]
+    public float lowTemperature = 0f;
+
+    /// <summary>
+    /// 最高温度
+    /// </summary>
+    [Range(0f, 1f)]
+    public float highTemperature = 1f;
+
+    /// <summary>
+    /// 区域在那个半球
+    /// </summary>
+    public HemisphereMode hemisphere;
+
+    /// <summary>
+    /// 温度波动率
+    /// </summary>
+    [Range(0f,1f)]
+    public float temperatureJitter = 0.1f;
+
 
     private int cellCount, landCells; //一共有几个细胞,多少个土地细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
@@ -180,6 +259,7 @@ public class HexMapGenerator : MonoBehaviour
     private List<ClimateData> climate = new List<ClimateData>();//天气系统
     private List<ClimateData> nextClimate = new List<ClimateData>();//下一次的天启系统
     private List<HexDirection> flowDirections = new List<HexDirection>();//河流储存的方向
+    private int temperatureJitterChannel; //天启系统用的随机通道
 
     private void Awake()
     {
@@ -733,33 +813,35 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     private void SetTerrainType()
     {
+        temperatureJitterChannel = Random.Range(0, 4);
         for (int i = 0; i < cellCount; i++)
         {
             HexCell cell = HexGrid.Instance.GetCell(i);
+            float temperature = DetermineTemperature(cell);
             float moisture = climate[i].moisture;
             int type = 0;
             if (!cell.IsUnderwater)
             {
-                if (moisture < 0.05f)
-                {//沙漠
-                    type = 4;
+                int t = 0;
+                for (; t < temperatureBands.Length; t++)
+                {
+                    if (temperature < temperatureBands[t])
+                    {
+                        break;
+                    }
                 }
-                else if (moisture < 0.12f)
-                {//雪山
-                    type = 0;
+
+                int m = 0;
+                for (; m < moistureBands.Length; m++)
+                {
+                    if (moisture < moistureBands[m])
+                    {
+                        break;
+                    }
                 }
-                else if (moisture < 0.28f)
-                {//石头
-                    type = 3;
-                }
-                else if (moisture < 0.85f)
-                {//草地
-                    type = 1;
-                }
-                else
-                {//泥土
-                    type = 2;
-                }
+
+                Biome cellBiome = biomes[t * 4 + m];
+                cell.TerrainTypeIndex = cellBiome.terrain;
             }
             else
             {//水下泥土
@@ -939,6 +1021,43 @@ public class HexMapGenerator : MonoBehaviour
             cell = cell.GetNeighbor(direction);
         }
         return length;
+    }
+
+    /// <summary>
+    /// 创建经纬度温度
+    /// </summary>
+    private float DetermineTemperature(HexCell cell)
+    {
+        float latitude = (float) cell.coordinates.Z / HexGrid.Instance.cellCountZ;
+
+        //半球
+        if (hemisphere == HemisphereMode.Both)
+        {
+            latitude *= 2f;
+            if (latitude > 1f)
+            {
+                latitude = 2f - latitude;
+            }
+        }
+        else if (hemisphere == HemisphereMode.North)
+        {
+            latitude = 1f - latitude;
+        }
+
+        //最高最低的温度
+        float temperature = Mathf.LerpUnclamped(lowTemperature, highTemperature, latitude);
+
+        //高度温度
+        temperature *= 1f - (cell.ViewElevation - waterLevel) /
+                       (elevationMaximum - waterLevel + 1f);
+
+        //随机温度波动
+        float jitter = HexMetrics.SampleNoise(cell.Position * 0.1f)[temperatureJitterChannel];
+
+        //正负温度波动
+        temperature += (jitter * 2f - 1f) * temperatureJitter;
+
+        return temperature;
     }
 
     /// <summary>
