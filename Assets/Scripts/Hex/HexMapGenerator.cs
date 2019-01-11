@@ -16,6 +16,7 @@ public class HexMapGenerator : MonoBehaviour
         /// 云
         /// </summary>
         public float clouds;
+
         /// <summary>
         /// 湿气
         /// </summary>
@@ -27,9 +28,9 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     public enum HemisphereMode
     {
-        Both,//中间
-        North,//北半球
-        South,//南半球
+        Both, //中间
+        North, //北半球
+        South, //南半球
     }
 
     /// <summary>
@@ -45,11 +46,12 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     private struct Biome
     {
-        public int terrain;
+        public int terrain, plant;
 
-        public Biome(int terrain)
+        public Biome(int terrain, int plant)
         {
             this.terrain = terrain;
+            this.plant = plant;
         }
     }
 
@@ -79,10 +81,10 @@ public class HexMapGenerator : MonoBehaviour
     /// </summary>
     private static Biome[] biomes =
     {
-        new Biome(0),new Biome(4),new Biome(4),new Biome(4),
-        new Biome(0),new Biome(2),new Biome(2),new Biome(2),
-        new Biome(0),new Biome(1),new Biome(1),new Biome(1),
-        new Biome(0),new Biome(1),new Biome(1),new Biome(1),
+        new Biome(0, 0), new Biome(4, 0), new Biome(4, 0), new Biome(4, 0),
+        new Biome(0, 0), new Biome(2, 0), new Biome(2, 1), new Biome(2, 2),
+        new Biome(0, 0), new Biome(1, 0), new Biome(1, 1), new Biome(1, 2),
+        new Biome(0, 0), new Biome(1, 1), new Biome(1, 2), new Biome(1, 3),
     };
 
     /// <summary>
@@ -103,26 +105,22 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 随机生成地形的圆形程度,越小越圆
     /// </summary>
-    [Range(0f, 0.5f)]
-    public float jitterProbability = 0.25f;
+    [Range(0f, 0.5f)] public float jitterProbability = 0.25f;
 
     /// <summary>
     /// 生成随机地形的最每块的最小的cell的数量
     /// </summary>
-    [Range(20, 200)]
-    public int chunkSizeMin = 30;
+    [Range(20, 200)] public int chunkSizeMin = 30;
 
     /// <summary>
     /// 生成随机地形的每块最大的cell数量
     /// </summary>
-    [Range(20, 200)]
-    public int chunkSizeMax = 100;
+    [Range(20, 200)] public int chunkSizeMax = 100;
 
     /// <summary>
     /// 生成孤立悬崖的概率,即高度+1/+2
     /// </summary>
-    [Range(0f, 1f)]
-    public float highRiseProbability = 0.25f;
+    [Range(0f, 1f)] public float highRiseProbability = 0.25f;
 
     /// <summary>
     /// 地形下降的概率
@@ -136,7 +134,7 @@ public class HexMapGenerator : MonoBehaviour
 
 
     /// <summary>
-    /// 水的高度
+    /// 水平面的高度
     /// </summary>
     [Range(1, 5)] public int waterLevel = 3;
 
@@ -173,38 +171,32 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 侵蚀打磨程度
     /// </summary>
-    [Range(0, 100)]
-    public int erosionPercentage = 50;
+    [Range(0, 100)] public int erosionPercentage = 50;
 
     /// <summary>
     /// 土地初始的水分
     /// </summary>
-    [Range(0f, 1f)]
-    public float startingMoisture = 0.1f;
+    [Range(0f, 1f)] public float startingMoisture = 0.1f;
 
     /// <summary>
     /// 蒸发多少水分
     /// </summary>
-    [Range(0, 1f)]
-    public float evaporationFactor = 0.5f;
+    [Range(0, 1f)] public float evaporationFactor = 0.5f;
 
     /// <summary>
     /// 形成云后降雨的量
     /// </summary>
-    [Range(0f, 1f)]
-    public float precipitationFactor = 0.25f;
+    [Range(0f, 1f)] public float precipitationFactor = 0.25f;
 
     /// <summary>
     /// 水土流失(高低地)
     /// </summary>
-    [Range(0f, 1f)]
-    public float runoffFactor = 0.25f;
+    [Range(0f, 1f)] public float runoffFactor = 0.25f;
 
     /// <summary>
     /// 渗漏(平级)
     /// </summary>
-    [Range(0f, 1f)]
-    public float seepageFactor = 0.125f;
+    [Range(0f, 1f)] public float seepageFactor = 0.125f;
 
     /// <summary>
     /// 风的方向
@@ -219,26 +211,22 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 河流的预算
     /// </summary>
-    [Range(0, 20)]
-    public float riverPercentage = 10;
+    [Range(0, 20)] public float riverPercentage = 10;
 
     /// <summary>
     /// 生成湖泊的概率
     /// </summary>
-    [Range(0f, 1f)]
-    public float extraLakeProbability = 0.25f;
+    [Range(0f, 1f)] public float extraLakeProbability = 0.25f;
 
     /// <summary>
     /// 最低温度
     /// </summary>
-    [Range(0f,1f)]
-    public float lowTemperature = 0f;
+    [Range(0f, 1f)] public float lowTemperature = 0f;
 
     /// <summary>
     /// 最高温度
     /// </summary>
-    [Range(0f, 1f)]
-    public float highTemperature = 1f;
+    [Range(0f, 1f)] public float highTemperature = 1f;
 
     /// <summary>
     /// 区域在那个半球
@@ -248,17 +236,16 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 温度波动率
     /// </summary>
-    [Range(0f,1f)]
-    public float temperatureJitter = 0.1f;
+    [Range(0f, 1f)] public float temperatureJitter = 0.1f;
 
 
     private int cellCount, landCells; //一共有几个细胞,多少个土地细胞
     private HexCellPriorityQueue searchFrontier; //随机生成寻路队列
     private int searchFrontierPhase; //随机生成寻路值
     private List<MapRegion> regions; //陆地生成的XZ的边界
-    private List<ClimateData> climate = new List<ClimateData>();//天气系统
-    private List<ClimateData> nextClimate = new List<ClimateData>();//下一次的天启系统
-    private List<HexDirection> flowDirections = new List<HexDirection>();//河流储存的方向
+    private List<ClimateData> climate = new List<ClimateData>(); //天气系统
+    private List<ClimateData> nextClimate = new List<ClimateData>(); //下一次的天启系统
+    private List<HexDirection> flowDirections = new List<HexDirection>(); //河流储存的方向
     private int temperatureJitterChannel; //天启系统用的随机通道
 
     private void Awake()
@@ -276,10 +263,11 @@ public class HexMapGenerator : MonoBehaviour
         if (!useFixedSeed)
         {
             seed = Random.Range(0, int.MaxValue);
-            seed ^= (int)System.DateTime.Now.Ticks;
-            seed ^= (int)Time.unscaledTime;
+            seed ^= (int) System.DateTime.Now.Ticks;
+            seed ^= (int) Time.unscaledTime;
             seed &= int.MaxValue; //强制归正数
         }
+
         Random.InitState(seed);
 
         //-----生成基础地形
@@ -349,78 +337,78 @@ public class HexMapGenerator : MonoBehaviour
         {
             //1或者其他
             default:
-                {
-                    region.xMin = mapBorderX;
-                    region.xMax = countX - mapBorderX;
-                    region.zMin = mapBorderZ;
-                    region.zMax = countZ - mapBorderZ;
-                    regions.Add(region);
-                    break;
-                }
+            {
+                region.xMin = mapBorderX;
+                region.xMax = countX - mapBorderX;
+                region.zMin = mapBorderZ;
+                region.zMax = countZ - mapBorderZ;
+                regions.Add(region);
+                break;
+            }
             case 2:
+            {
+                if (Random.value < 0.5f)
                 {
-                    if (Random.value < 0.5f)
-                    {
-                        var halfX = countX / 2;
-                        region.xMin = mapBorderX;
-                        region.xMax = halfX - regionBorder;
-                        region.zMin = mapBorderZ;
-                        region.zMax = countZ - mapBorderZ;
-                        regions.Add(region);
-                        region.xMin = halfX + regionBorder;
-                        region.xMax = countX - mapBorderX;
-                        regions.Add(region);
-                    }
-                    else
-                    {
-                        var halfZ = countZ / 2;
-                        region.xMin = mapBorderX;
-                        region.xMax = countX - mapBorderX;
-                        region.zMin = mapBorderZ;
-                        region.zMax = halfZ - regionBorder;
-                        regions.Add(region);
-                        region.zMin = halfZ + regionBorder;
-                        region.zMax = countZ - mapBorderZ;
-                        regions.Add(region);
-                    }
-
-                    break;
-                }
-            case 3:
-                {
-                    int x_1_3 = countX / 3, x_2_3 = x_1_3 * 2;
-                    region.xMin = mapBorderX;
-                    region.xMax = x_1_3 - regionBorder;
-                    region.zMin = mapBorderZ;
-                    region.zMax = countZ - mapBorderZ;
-                    regions.Add(region);
-                    region.xMin = x_1_3 + regionBorder;
-                    region.xMax = x_2_3 - regionBorder;
-                    regions.Add(region);
-                    region.xMin = x_2_3 + regionBorder;
-                    region.xMax = countX - mapBorderX;
-                    regions.Add(region);
-                    break;
-                }
-            case 4:
-                {
-                    int halfX = countX / 2, halfZ = countZ / 2;
+                    var halfX = countX / 2;
                     region.xMin = mapBorderX;
                     region.xMax = halfX - regionBorder;
                     region.zMin = mapBorderZ;
-                    region.zMax = halfZ - regionBorder;
+                    region.zMax = countZ - mapBorderZ;
                     regions.Add(region);
                     region.xMin = halfX + regionBorder;
                     region.xMax = countX - mapBorderX;
                     regions.Add(region);
+                }
+                else
+                {
+                    var halfZ = countZ / 2;
+                    region.xMin = mapBorderX;
+                    region.xMax = countX - mapBorderX;
+                    region.zMin = mapBorderZ;
+                    region.zMax = halfZ - regionBorder;
+                    regions.Add(region);
                     region.zMin = halfZ + regionBorder;
                     region.zMax = countZ - mapBorderZ;
                     regions.Add(region);
-                    region.xMin = mapBorderX;
-                    region.xMax = countX - regionBorder;
-                    regions.Add(region);
-                    break;
                 }
+
+                break;
+            }
+            case 3:
+            {
+                int x_1_3 = countX / 3, x_2_3 = x_1_3 * 2;
+                region.xMin = mapBorderX;
+                region.xMax = x_1_3 - regionBorder;
+                region.zMin = mapBorderZ;
+                region.zMax = countZ - mapBorderZ;
+                regions.Add(region);
+                region.xMin = x_1_3 + regionBorder;
+                region.xMax = x_2_3 - regionBorder;
+                regions.Add(region);
+                region.xMin = x_2_3 + regionBorder;
+                region.xMax = countX - mapBorderX;
+                regions.Add(region);
+                break;
+            }
+            case 4:
+            {
+                int halfX = countX / 2, halfZ = countZ / 2;
+                region.xMin = mapBorderX;
+                region.xMax = halfX - regionBorder;
+                region.zMin = mapBorderZ;
+                region.zMax = halfZ - regionBorder;
+                regions.Add(region);
+                region.xMin = halfX + regionBorder;
+                region.xMax = countX - mapBorderX;
+                regions.Add(region);
+                region.zMin = halfZ + regionBorder;
+                region.zMax = countZ - mapBorderZ;
+                regions.Add(region);
+                region.xMin = mapBorderX;
+                region.xMax = countX - regionBorder;
+                regions.Add(region);
+                break;
+            }
         }
     }
 
@@ -595,14 +583,15 @@ public class HexMapGenerator : MonoBehaviour
                 erodibleCells.Add(cell);
             }
         }
+
         //要打磨的块的个数
-        int targetErodibleCount = (int)(erodibleCells.Count * (100 - erosionPercentage) * 0.01f);
+        int targetErodibleCount = (int) (erodibleCells.Count * (100 - erosionPercentage) * 0.01f);
 
         while (erodibleCells.Count > targetErodibleCount)
         {
             int index = Random.Range(0, erodibleCells.Count);
-            HexCell cell = erodibleCells[index];//当前侵蚀的cell
-            HexCell targetCell = GetErosionTarget(cell);//被转移的目标
+            HexCell cell = erodibleCells[index]; //当前侵蚀的cell
+            HexCell targetCell = GetErosionTarget(cell); //被转移的目标
 
             cell.Elevation -= 1;
             targetCell.Elevation += 1;
@@ -620,7 +609,7 @@ public class HexMapGenerator : MonoBehaviour
             {
                 HexCell neighbor = cell.GetNeighbor(d);
                 if (neighbor && neighbor.Elevation == cell.Elevation + 2
-                    && !erodibleCells.Contains(neighbor))
+                             && !erodibleCells.Contains(neighbor))
                 {
                     erodibleCells.Add(neighbor);
                 }
@@ -637,8 +626,8 @@ public class HexMapGenerator : MonoBehaviour
             {
                 HexCell neighbor = targetCell.GetNeighbor(d);
                 if (neighbor && neighbor != cell
-                    && neighbor.Elevation == targetCell.Elevation + 1
-                    && !IsErodible(neighbor))
+                             && neighbor.Elevation == targetCell.Elevation + 1
+                             && !IsErodible(neighbor))
                 {
                     erodibleCells.Remove(neighbor);
                 }
@@ -665,6 +654,7 @@ public class HexMapGenerator : MonoBehaviour
                 return true;
             }
         }
+
         return false;
     }
 
@@ -705,18 +695,19 @@ public class HexMapGenerator : MonoBehaviour
             climate.Add(initialData);
             nextClimate.Add(clearData);
         }
+
         for (int cycle = 0; cycle < 40; cycle++)
         {
             for (int i = 0; i < cellCount; i++)
             {
                 EvolveClimate(i);
             }
+
             //交换天启系统
             var swap = climate;
             climate = nextClimate;
             nextClimate = swap;
         }
-
     }
 
     /// <summary>
@@ -728,12 +719,14 @@ public class HexMapGenerator : MonoBehaviour
         ClimateData cellClimate = climate[cellIndex];
 
         if (cell.IsUnderwater)
-        {//是水,水分为1,形成云
+        {
+            //是水,水分为1,形成云
             cellClimate.moisture = 1f;
             cellClimate.clouds += evaporationFactor;
         }
         else
-        {//是陆地,计算土里水分*挥发比例
+        {
+            //是陆地,计算土里水分*挥发比例
             float evaporation = cellClimate.moisture * evaporationFactor;
             cellClimate.moisture -= evaporation;
             cellClimate.clouds += evaporation;
@@ -794,8 +787,9 @@ public class HexMapGenerator : MonoBehaviour
                 neighborClimate.moisture += seepage;
             }
 
-            nextClimate[neighbor.Index] = neighborClimate;//设置邻居
+            nextClimate[neighbor.Index] = neighborClimate; //设置邻居
         }
+
         //设置湿气数据进下一次缓冲
         ClimateData nextCellClimate = nextClimate[cellIndex];
         nextCellClimate.moisture += cellClimate.moisture;
@@ -803,6 +797,7 @@ public class HexMapGenerator : MonoBehaviour
         {
             nextCellClimate.moisture = 1f;
         }
+
         nextClimate[cellIndex] = nextCellClimate;
         climate[cellIndex] = new ClimateData();
     }
@@ -814,12 +809,14 @@ public class HexMapGenerator : MonoBehaviour
     private void SetTerrainType()
     {
         temperatureJitterChannel = Random.Range(0, 4);
+        //half 高度
+        int rockDesertElevation =
+            elevationMaximum - (elevationMaximum - waterLevel) / 2;
         for (int i = 0; i < cellCount; i++)
         {
             HexCell cell = HexGrid.Instance.GetCell(i);
             float temperature = DetermineTemperature(cell);
             float moisture = climate[i].moisture;
-            int type = 0;
             if (!cell.IsUnderwater)
             {
                 int t = 0;
@@ -841,13 +838,109 @@ public class HexMapGenerator : MonoBehaviour
                 }
 
                 Biome cellBiome = biomes[t * 4 + m];
+
+                if (cellBiome.terrain == 0
+                    && cell.Elevation >= rockDesertElevation)
+                {
+                    //如果是高处的沙漠,则变成岩石沙漠
+
+                    cellBiome.terrain = 3;
+                }
+                else if (cell.Elevation == elevationMaximum)
+                {
+                    //如果是最高处的非沙漠则是雪山
+                    cellBiome.terrain = 4;
+                }
+
+
+                if (cellBiome.terrain == 4)
+                {
+                    //是雪山地形,植物为0
+                    cellBiome.plant = 0;
+                }
+                else if (cellBiome.plant < 3 && cell.HasRiver)
+                {
+                    //如果旁边有水源,植物等级+1
+                    cellBiome.plant += 1;
+                }
+
                 cell.TerrainTypeIndex = cellBiome.terrain;
+                cell.PlantLevel = cellBiome.plant;
             }
             else
-            {//水下泥土
-                type = 2;
+            {
+                int terrain;
+                if (cell.Elevation == waterLevel - 1)
+                {
+                    //细胞在水平面的下面一格
+                    //判断周围的格子如果比自己高一个,则是坡
+                    //高N格,则是悬崖
+                    int cliffs = 0, slopes = 0;
+                    for (var d = HexDirection.NE; d <= HexDirection.NW; d++)
+                    {
+                        HexCell neighbor = cell.GetNeighbor(d);
+                        if (!neighbor)
+                        {
+                            continue;
+                        }
+
+                        int delta = neighbor.Elevation - cell.WaterLevel;
+                        if (delta == 0)
+                        {
+                            slopes += 1;
+                        }
+                        else if (delta > 0)
+                        {
+                            cliffs += 1;
+                        }
+                    }
+
+                    if (cliffs + slopes > 3)
+                    {
+                        //悬崖和坡混合过高,是草地
+                        terrain = 1;
+                    }
+                    else if (cliffs > 0)
+                    {
+                        //如果是悬崖,则是演示
+                        terrain = 3;
+                    }
+                    else if (slopes > 0)
+                    {
+                        //缓坡,则是沙子
+                        terrain = 0;
+                    }
+                    else
+                    {
+                        //否则还是草地
+                        terrain = 1;
+                    }
+                }
+                else if (cell.Elevation >= waterLevel)
+                {
+                    //细胞在水下但是高于水平面,是草地
+                    terrain = 1;
+                }
+                else if (cell.Elevation < 0)
+                {
+                    //比地平线还低,则是岩石
+                    terrain = 3;
+                }
+                else
+                {
+                    //最后则是水下泥土
+                    terrain = 2;
+                }
+
+                //如果是草地,且温度过低,则退化成泥土
+                if (terrain == 1 && temperature < temperatureBands[0])
+                {
+                    terrain = 2;
+                }
+
+                cell.TerrainTypeIndex = terrain;
             }
-            cell.TerrainTypeIndex = type;
+
             cell.SetMapData(moisture);
         }
     }
@@ -868,17 +961,19 @@ public class HexMapGenerator : MonoBehaviour
 
             ClimateData data = climate[i];
             float weight = data.moisture * (cell.Elevation - waterLevel)
-                / (elevationMaximum - waterLevel);
+                           / (elevationMaximum - waterLevel);
             //权重越高随机到的概率越高
             if (weight > 0.75f)
             {
                 riverOrigins.Add(cell);
                 riverOrigins.Add(cell);
             }
+
             if (weight > 0.5f)
             {
                 riverOrigins.Add(cell);
             }
+
             if (weight > 0.25f)
             {
                 riverOrigins.Add(cell);
@@ -909,13 +1004,14 @@ public class HexMapGenerator : MonoBehaviour
                         break;
                     }
                 }
+
                 if (isValidOrign)
                 {
                     riverBudget -= CreateRiver(origin);
                 }
-
             }
         }
+
         if (riverBudget > 0)
         {
             Debug.Log("河流的方块不够");
@@ -983,7 +1079,6 @@ public class HexMapGenerator : MonoBehaviour
             }
 
 
-
             //如果周围都是水
             if (flowDirections.Count == 0)
             {
@@ -1002,6 +1097,7 @@ public class HexMapGenerator : MonoBehaviour
                         cell.Elevation = minNeighborElevation - 1;
                     }
                 }
+
                 break;
             }
 
@@ -1020,6 +1116,7 @@ public class HexMapGenerator : MonoBehaviour
 
             cell = cell.GetNeighbor(direction);
         }
+
         return length;
     }
 
