@@ -850,7 +850,7 @@ GameObject:
   - component: {fileID: 138340424}
   - component: {fileID: 138340425}
   m_Layer: 5
-  m_Name: Toggle_Warpping
+  m_Name: Toggle_Wrapping
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12953,7 +12953,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1651102036
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13089,7 +13089,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Warpping
+  m_Text: Wrapping
 --- !u!222 &1656135879
 CanvasRenderer:
   m_ObjectHideFlags: 0
