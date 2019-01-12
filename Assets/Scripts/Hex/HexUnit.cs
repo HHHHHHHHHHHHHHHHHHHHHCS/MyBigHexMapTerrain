@@ -67,11 +67,17 @@ public class HexUnit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 重新设置位置
+    /// </summary>
     public void ValidateLocation()
     {
         transform.localPosition = location.Position;
     }
 
+    /// <summary>
+    /// 死亡
+    /// </summary>
     public void Die()
     {
         if (location)
@@ -120,6 +126,9 @@ public class HexUnit : MonoBehaviour
         return moveCost;
     }
 
+    /// <summary>
+    /// 走路
+    /// </summary>
     public void Travel(List<HexCell> path)
     {
         location.Unit = null;
@@ -134,6 +143,9 @@ public class HexUnit : MonoBehaviour
         cor = StartCoroutine(TravelPath());
     }
 
+    /// <summary>
+    /// 转向目标
+    /// </summary>
     private IEnumerator LookAt(Vector3 point)
     {
         point.y = transform.localPosition.y;
@@ -156,6 +168,9 @@ public class HexUnit : MonoBehaviour
         orientation = transform.localRotation.eulerAngles.y;
     }
 
+    /// <summary>
+    /// 根据路径行走
+    /// </summary>
     public IEnumerator TravelPath()
     {
         Vector3 a, b, c = pathToTravel[0].Position;
@@ -212,12 +227,18 @@ public class HexUnit : MonoBehaviour
         pathToTravel = null;
     }
 
+    /// <summary>
+    /// 保存
+    /// </summary>
     public void Save(MyWriter writer)
     {
         location.coordinates.Save(writer);
         writer.Write(orientation);
     }
 
+    /// <summary>
+    /// 读取
+    /// </summary>
     public static void Load(MyReader reader, HexGrid grid)
     {
         var coordinates = HexCoordinates.Load(reader);

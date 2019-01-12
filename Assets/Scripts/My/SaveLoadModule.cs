@@ -17,6 +17,7 @@ public static class SaveLoadModule
     public const int version_2 = 2; //可以载入单位
     public const int version_3 = 3; //可以载入探索过的
     public const int version_4 = 4; //让高度能储存负数
+    public const int version_5 = 5; //是否循环地形
 
     private const int nowVersionHeader = 3;
     private const string saveDir = @"../SaveMap";
@@ -31,6 +32,9 @@ public static class SaveLoadModule
         Directory.CreateDirectory(savePath);
     }
 
+    /// <summary>
+    /// 保存
+    /// </summary>
     public static void Save(string fileName, HexGrid hexGrid)
     {
         if (string.IsNullOrEmpty(fileName))
@@ -52,6 +56,9 @@ public static class SaveLoadModule
         }
     }
 
+    /// <summary>
+    /// 读取
+    /// </summary>
     public static void Load(string fileName, HexGrid hexGrid)
     {
         if (string.IsNullOrEmpty(fileName))
@@ -83,6 +90,9 @@ public static class SaveLoadModule
         }
     }
 
+    /// <summary>
+    /// 删除某个文件
+    /// </summary>
     public static void Delete(string fileName)
     {
         if (string.IsNullOrEmpty(fileName))
@@ -97,6 +107,9 @@ public static class SaveLoadModule
         File.Delete(filePath);
     }
 
+    /// <summary>
+    /// 得到全部的文件
+    /// </summary>
     public static List<string> GetAllFile()
     {
         var dirInfo = new DirectoryInfo(savePath);

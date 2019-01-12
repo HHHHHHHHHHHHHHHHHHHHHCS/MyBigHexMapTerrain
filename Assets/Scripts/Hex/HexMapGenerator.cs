@@ -256,7 +256,7 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 生成随机地形
     /// </summary>
-    public void GenerateMap(int x, int z)
+    public void GenerateMap(int x, int z,bool isWrapping)
     {
         //-----随机种子-----
         Random.State originalRandomState = Random.state;
@@ -273,7 +273,7 @@ public class HexMapGenerator : MonoBehaviour
         //-----生成基础地形
         var grid = HexGrid.Instance;
         cellCount = x * z;
-        grid.CreateMap(x, z);
+        grid.CreateMap(x, z, isWrapping);
 
         //-----随机生成寻路队列
         if (searchFrontier == null)

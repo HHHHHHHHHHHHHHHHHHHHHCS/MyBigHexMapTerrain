@@ -13,11 +13,13 @@ public class HexGrid : MonoBehaviour
 
     public Texture2D noiseSource;
     public int cellCountX = 20, cellCountZ = 15; //一共有几个六边形
+    public bool wrapping; //是否循环地形
     public HexGridChunk chunkPrefab;
     public HexCell cellPrefab;
     public Text cellLabelPrefab;
     public HexUnit unitPrefab;
     public Color searchFromColor = Color.blue, searchToColor = Color.red, searchPathColor = Color.white;
+
 
     private HexCell[] cells;
     private int chunkCountX, chunkCountZ; //有几个地形块
@@ -26,6 +28,7 @@ public class HexGrid : MonoBehaviour
     private HexCell currentPathFrom, currentPathTo;
     private List<HexUnit> units = new List<HexUnit>();
     private HexCellShaderData cellShaderData;
+    private Transform[] columns;
 
     //private static WaitForSeconds delay = new WaitForSeconds(1 / 60f);
     //private Coroutine coroutine;
@@ -40,7 +43,7 @@ public class HexGrid : MonoBehaviour
     {
         Init();
         cellShaderData = gameObject.AddComponent<HexCellShaderData>();
-        CreateMap(cellCountX, cellCountZ);
+        CreateMap(cellCountX, cellCountZ, wrapping);
     }
 
     /// <summary>
@@ -55,15 +58,26 @@ public class HexGrid : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     private void Init()
     {
         Instance = this;
         HexUnit.unitPrefab = unitPrefab;
+        HexMetrics.wrapSize = wrapping ? cellCountX : 0;
         HexMetrics.noiseSource = noiseSource;
         HexMetrics.InitializeHashGrid(seed);
     }
 
-    public bool CreateMap(int x, int z)
+    /// <summary>
+    /// 创建地图
+    /// </summary>
+    /// <param name="x">地图横有几个Cell</param>
+    /// <param name="z">地图竖有几个Cell</param>
+    /// <param name="isWrapping">是否循环</param>
+    /// <returns></returns>
+    public bool CreateMap(int x, int z, bool isWrapping)
     {
         if (x <= 0 || x % HexMetrics.chunkSizeX != 0
                    || z <= 0 || z % HexMetrics.chunkSizeZ != 0)
@@ -73,9 +87,9 @@ public class HexGrid : MonoBehaviour
         }
 
         ClearMap();
-        if (chunks != null)
+        if (columns != null)
         {
-            foreach (var item in chunks)
+            foreach (var item in columns)
             {
                 Destroy(item.gameObject);
             }
@@ -84,6 +98,8 @@ public class HexGrid : MonoBehaviour
 
         cellCountX = x;
         cellCountZ = z;
+        wrapping = isWrapping;
+        HexMetrics.wrapSize = wrapping ? cellCountX : 0;
         chunkCountX = cellCountX / HexMetrics.chunkSizeX;
         chunkCountZ = cellCountZ / HexMetrics.chunkSizeZ;
         cellShaderData.Initialize(cellCountX, cellCountZ);
@@ -92,19 +108,32 @@ public class HexGrid : MonoBehaviour
         return true;
     }
 
-
+    /// <summary>
+    /// 创建地图块
+    /// </summary>
     private void CreateChunks()
     {
+        columns = new Transform[chunkCountX];
+        for (int x = 0; x < chunkCountX; x++)
+        {
+            columns[x] = new GameObject("Column").transform;
+            columns[x].SetParent(transform, false);
+        }
+
+
         chunks = new HexGridChunk[chunkCountX * chunkCountZ];
 
         for (int z = 0, i = 0; z < chunkCountZ; z++)
         for (var x = 0; x < chunkCountX; x++)
         {
             var chunk = chunks[i++] = Instantiate(chunkPrefab);
-            chunk.transform.SetParent(transform);
+            chunk.transform.SetParent(columns[x]);
         }
     }
 
+    /// <summary>
+    /// 创建细胞
+    /// </summary>
     private void CreateCells()
     {
         cells = new HexCell[cellCountX * cellCountZ];
@@ -114,11 +143,14 @@ public class HexGrid : MonoBehaviour
             CreateCell(x, z, i++);
     }
 
+    /// <summary>
+    /// 创建一个细胞
+    /// </summary>
     private void CreateCell(int x, int z, int i)
     {
         var position = new Vector3
         {
-            x = (x + z % 2 * 0.5f) * (HexMetrics.innerRadius * 2f),
+            x = (x + z % 2 * 0.5f) * (HexMetrics.innerDiameter),
             y = 0f,
             z = z * (HexMetrics.outerRadius * 1.5f)
         };
@@ -159,6 +191,9 @@ public class HexGrid : MonoBehaviour
         AddCellToChunk(x, z, cell);
     }
 
+    /// <summary>
+    /// 添加细胞到地图块
+    /// </summary>
     private void AddCellToChunk(int x, int z, HexCell cell)
     {
         var chunkX = x / HexMetrics.chunkSizeX;
@@ -170,6 +205,9 @@ public class HexGrid : MonoBehaviour
         chunk.AddCell(localX + localZ * HexMetrics.chunkSizeX, cell);
     }
 
+    /// <summary>
+    /// 得到细胞,根据cell 坐标数据
+    /// </summary>
     public HexCell GetCell(HexCoordinates coordinates)
     {
         var z = coordinates.Z;
@@ -181,6 +219,9 @@ public class HexGrid : MonoBehaviour
         return cells[x + z * cellCountX];
     }
 
+    /// <summary>
+    /// 得到细胞,根据位置
+    /// </summary>
     public HexCell GetCell(Vector3 position)
     {
         position = transform.InverseTransformPoint(position);
@@ -190,7 +231,9 @@ public class HexGrid : MonoBehaviour
         return cells[index];
     }
 
-
+    /// <summary>
+    /// 得到细胞根据射线
+    /// </summary>
     public HexCell GetCell(Ray ray)
     {
         if (Physics.Raycast(ray, out RaycastHit hit))
@@ -201,22 +244,30 @@ public class HexGrid : MonoBehaviour
         return null;
     }
 
-
+    /// <summary>
+    /// 得到细胞,根据横竖轴
+    /// </summary>
     public HexCell GetCell(int xOffset, int zOffset)
     {
         return cells[xOffset + zOffset * cellCountX];
     }
 
+    /// <summary>
+    /// 得到细胞根据index
+    /// </summary>
     public HexCell GetCell(int cellIndex)
     {
         return cells[cellIndex];
     }
 
+    /// <summary>
+    /// 显示UI
+    /// </summary>
     public void ShowUI(bool visible)
     {
-        for (var i = 0; i < chunks.Length; i++)
+        foreach (var item in chunks)
         {
-            chunks[i].ShowUI(visible);
+            item.ShowUI(visible);
         }
     }
 
@@ -238,10 +289,15 @@ public class HexGrid : MonoBehaviour
 
     #region SaveLoad
 
+    /// <summary>
+    /// 保存
+    /// </summary>
+    /// <param name="writer"></param>
     public void Save(MyWriter writer)
     {
         writer.Write(cellCountX);
         writer.Write(cellCountZ);
+        writer.Write(wrapping);
         foreach (var item in cells)
         {
             item.Save(writer);
@@ -254,6 +310,11 @@ public class HexGrid : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 读取
+    /// </summary>
+    /// <param name="reader"></param>
+    /// <param name="header"></param>
     public void Load(MyReader reader, int header)
     {
         //if (coroutine != null)
@@ -268,9 +329,15 @@ public class HexGrid : MonoBehaviour
             z = reader.ReadInt32();
         }
 
-        if (x != cellCountX || z != cellCountZ)
-            if (!CreateMap(x, z))
+        bool isWrapping = header >= SaveLoadModule.version_5 && reader.ReadBoolean();
+
+        if (x != cellCountX || z != cellCountZ || wrapping != isWrapping)
+        {
+            if (!CreateMap(x, z, isWrapping))
+            {
                 return;
+            }
+        }
 
 
         var originalImmediateMode = cellShaderData.ImmediateMode;
@@ -298,6 +365,9 @@ public class HexGrid : MonoBehaviour
         cellShaderData.ImmediateMode = originalImmediateMode;
     }
 
+    /// <summary>
+    /// 清除地图上的数据
+    /// </summary>
     public void ClearMap()
     {
         ClearPath();
@@ -308,6 +378,12 @@ public class HexGrid : MonoBehaviour
 
     #region A* Search Path
 
+    /// <summary>
+    /// 寻路
+    /// </summary>
+    /// <param name="fromCell">来的cell</param>
+    /// <param name="toCell">要去的cell</param>
+    /// <param name="unit">要移动的单位</param>
     public void FindPath(HexCell fromCell, HexCell toCell, HexUnit unit)
     {
         //if (coroutine != null)
@@ -328,7 +404,13 @@ public class HexGrid : MonoBehaviour
         //Debug.Log(sw.ElapsedMilliseconds);
     }
 
-
+    /// <summary>
+    /// 搜索
+    /// </summary>
+    /// <param name="fromCell">来的cell</param>
+    /// <param name="toCell">要去的cell</param>
+    /// <param name="unit">要移动的单位</param>
+    /// <returns>是否可以寻路</returns>
     private /*IEnumerator*/ bool Search(HexCell fromCell, HexCell toCell, HexUnit unit)
     {
         int speed = unit.Speed;
@@ -409,6 +491,10 @@ public class HexGrid : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// 显示路径
+    /// </summary>
+    /// <param name="speed"></param>
     private void ShowPath(int speed)
     {
         if (currentPathExists)
@@ -427,6 +513,9 @@ public class HexGrid : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 清除路径
+    /// </summary>
     public void ClearPath()
     {
         if (currentPathExists)
@@ -445,7 +534,11 @@ public class HexGrid : MonoBehaviour
 
         currentPathFrom = currentPathTo = null;
     }
-
+    
+    /// <summary>
+    /// 得到路径
+    /// </summary>
+    /// <returns></returns>
     public List<HexCell> GetPath()
     {
         if (!currentPathExists)
@@ -468,6 +561,9 @@ public class HexGrid : MonoBehaviour
 
     #region Units
 
+    /// <summary>
+    /// 清除单位
+    /// </summary>
     private void ClearUnits()
     {
         foreach (var item in units)
@@ -478,6 +574,9 @@ public class HexGrid : MonoBehaviour
         units.Clear();
     }
 
+    /// <summary>
+    /// 添加单位
+    /// </summary>
     public void AddUnit(HexUnit unit, HexCell location, float orientation)
     {
         units.Add(unit);
@@ -486,6 +585,9 @@ public class HexGrid : MonoBehaviour
         unit.Orientation = orientation;
     }
 
+    /// <summary>
+    /// 移除单位
+    /// </summary>
     public void RemoveUnit(HexUnit unit)
     {
         units.Remove(unit);
@@ -555,7 +657,9 @@ public class HexGrid : MonoBehaviour
         return visibleCells;
     }
 
-
+    /// <summary>
+    /// 增加视野
+    /// </summary>
     public void IncreaseVisibility(HexCell fromCell, int range)
     {
         var cells = GetVisibleCells(fromCell, range);
@@ -567,6 +671,9 @@ public class HexGrid : MonoBehaviour
         ListPool<HexCell>.Add(cells);
     }
 
+    /// <summary>
+    /// 减少视野
+    /// </summary>
     public void DecreaseVisibility(HexCell fromCell, int range)
     {
         var cells = GetVisibleCells(fromCell, range);

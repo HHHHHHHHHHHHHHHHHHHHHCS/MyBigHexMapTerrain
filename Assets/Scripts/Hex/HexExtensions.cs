@@ -171,7 +171,10 @@ public class HexCellPriorityQueue
 
     public int Count { get; private set; } = 0;
     private int minimum = int.MaxValue;
-
+    
+    /// <summary>
+    /// 添加
+    /// </summary>
     public void Enqueue(HexCell cell)
     {
         Count += 1;
@@ -190,6 +193,9 @@ public class HexCellPriorityQueue
         list[priority] = cell;
     }
 
+    /// <summary>
+    /// 得到第一个
+    /// </summary>
     public HexCell Dequeue()
     {
         Count -= 1;
@@ -205,7 +211,10 @@ public class HexCellPriorityQueue
 
         return null;
     }
-
+    
+    /// <summary>
+    /// 改变某个数据
+    /// </summary>
     public void Change(HexCell cell, int oldPriority)
     {
         HexCell current = list[oldPriority];
@@ -229,6 +238,9 @@ public class HexCellPriorityQueue
         Count -= 1;
     }
 
+    /// <summary>
+    /// 清除
+    /// </summary>
     public void Clear()
     {
         list.Clear();

@@ -24,9 +24,14 @@ public sealed class HexMetrics
     public const float innerToOuter = 1f / outerInner;
 
     /// <summary>
-    /// 六边形到边的长度
+    /// 中心点到边的长度
     /// </summary>
     public const float innerRadius = outerRadius * outerInner;
+
+    /// <summary>
+    /// 两倍到边的长度
+    /// </summary>
+    public const float innerDiameter = innerRadius * 2f;
 
     /// <summary>
     /// 混合度
@@ -179,10 +184,20 @@ public sealed class HexMetrics
     /// <summary>
     /// 装饰物的随机概率
     /// </summary>
-    private static float[][] featureThresholds ={
+    private static readonly float[][] featureThresholds ={
         new float[]{0.0f,0.0f,0.4f},
         new float[]{0.0f,0.4f,0.6f},
         new float[]{0.4f,0.6f,0.8f},};
+
+    /// <summary>
+    /// 循环地图的尺寸
+    /// </summary>
+    public static int wrapSize;
+
+    /// <summary>
+    /// 地图是否循环
+    /// </summary>
+    public static bool Wrapping => wrapSize > 0;
 
 
     /// <summary>

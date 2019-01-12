@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 细胞shader的数据
+/// </summary>
 public class HexCellShaderData : MonoBehaviour
 {
+    //R:视野是否可见 G:是否被探索过 B:视野可见度的过渡 A:地形类型的数据
+
     private const float transitionSpeed = 255f; //视野转换的时间
 
     /// <summary>
@@ -18,6 +23,9 @@ public class HexCellShaderData : MonoBehaviour
 
     private bool needsVisibilityReset; //视野是否改变
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public void Initialize(int x, int z)
     {
         if (cellTexture)
@@ -55,6 +63,9 @@ public class HexCellShaderData : MonoBehaviour
         enabled = true;
     }
 
+    /// <summary>
+    /// 延迟统一更新
+    /// </summary>
     private void LateUpdate()
     {
         if (needsVisibilityReset)
@@ -86,12 +97,18 @@ public class HexCellShaderData : MonoBehaviour
         enabled = transitioningCells.Count > 0;
     }
 
+    /// <summary>
+    /// 刷新某个cell的数据
+    /// </summary>
     public void RefreshTerrain(HexCell cell)
     {
         cellTextureData[cell.Index].a = (byte) cell.TerrainTypeIndex;
         enabled = true;
     }
 
+    /// <summary>
+    /// 刷新可见度
+    /// </summary>
     public void RefreshVisibility(HexCell cell)
     {
         int index = cell.Index;
@@ -109,6 +126,9 @@ public class HexCellShaderData : MonoBehaviour
         enabled = true;
     }
 
+    /// <summary>
+    /// 更新cell的数据
+    /// </summary>
     private bool UpdateCellData(HexCell cell, int delta)
     {
         int index = cell.Index;
@@ -149,6 +169,9 @@ public class HexCellShaderData : MonoBehaviour
         return stillUpdating;
     }
 
+    /// <summary>
+    /// 设置细胞的数据
+    /// </summary>
     public void SetMapData(HexCell cell,float data)
     {
         data = Mathf.Clamp01(data);

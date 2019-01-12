@@ -89,20 +89,19 @@ public class HexMapCamera : MonoBehaviour
     /// <summary>
     /// 限制摄像机的位置
     /// </summary>
-    /// <param name="postion"></param>
+    /// <param name="position"></param>
     /// <returns></returns>
-    private Vector3 ClampPosition(Vector3 postion)
+    private Vector3 ClampPosition(Vector3 position)
     {
-        float xMax = (grid.cellCountX - 0.5f)
-                     * (2f * HexMetrics.innerRadius);
-        postion.x = Mathf.Clamp(postion.x, 0f, xMax);
+        float xMax = (grid.cellCountX - 0.5f)* HexMetrics.innerDiameter;
+        position.x = Mathf.Clamp(position.x, 0f, xMax);
 
 
         float zMax = (grid.cellCountZ - 1f)
                      * (1.5f * HexMetrics.outerRadius);
-        postion.z = Mathf.Clamp(postion.z, 0f, zMax);
+        position.z = Mathf.Clamp(position.z, 0f, zMax);
 
-        return postion;
+        return position;
     }
 
     /// <summary>
@@ -125,6 +124,9 @@ public class HexMapCamera : MonoBehaviour
         transform.localRotation = Quaternion.Euler(0f, rotationAngle, 0f);
     }
 
+    /// <summary>
+    /// 在地图大小改变的时候,刷新位置
+    /// </summary>
     public void ValidatePosition()
     {
         AdjustPosition(0f, 0f);
