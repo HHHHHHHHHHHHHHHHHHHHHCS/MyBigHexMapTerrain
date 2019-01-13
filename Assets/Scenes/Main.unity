@@ -974,6 +974,7 @@ MonoBehaviour:
   noiseSource: {fileID: 2800000, guid: 87fc41f4cdb62654c83fb0bce85bf090, type: 3}
   cellCountX: 20
   cellCountZ: 15
+  wrapping: 0
   chunkPrefab: {fileID: 2944169742696715832, guid: 3c27f26bfe6c65d40bf727f0439ccb2a,
     type: 3}
   cellPrefab: {fileID: 832147345428690286, guid: ee30d0de5ff628b459d5bb2496f18bc6,
@@ -8074,7 +8075,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1113331704
 GameObject:
   m_ObjectHideFlags: 0
@@ -8475,7 +8476,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1144187511
 GameObject:
   m_ObjectHideFlags: 0
@@ -9083,7 +9084,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 255, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1236950084
@@ -10695,7 +10696,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1431673201
 GameObject:
   m_ObjectHideFlags: 0
@@ -14950,7 +14951,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1976043398
 GameObject:
   m_ObjectHideFlags: 0

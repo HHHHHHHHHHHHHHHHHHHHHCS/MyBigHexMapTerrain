@@ -17,6 +17,7 @@
 		LOD 200
 		CGPROGRAM
 		
+		#include "HexMetrics.cginc"
 		#include "HexCellData.cginc"
 		
 		#pragma surface surf StandardSpecular fullforwardshadows vertex:vert
@@ -70,7 +71,8 @@
 		
 		float4 GetTerrainColor(Input IN, int index)
 		{
-			float3 uvw = float3(IN.worldPos.xz * 0.02, IN.terrain[index]);
+			//这里2随便用一个平铺变数
+			float3 uvw = float3(frac(IN.worldPos.xz * (2 * TILING_SCALE)), IN.terrain[index]);
 			float4 c = UNITY_SAMPLE_TEX2DARRAY(_MainTex, uvw);
 			return c * (IN.color[index] * IN.visibility[index]);
 		}

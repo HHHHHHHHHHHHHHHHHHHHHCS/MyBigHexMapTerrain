@@ -28,7 +28,8 @@ public class HexGrid : MonoBehaviour
     private HexCell currentPathFrom, currentPathTo;
     private List<HexUnit> units = new List<HexUnit>();
     private HexCellShaderData cellShaderData;
-    private Transform[] columns;
+    private Transform[] columns; //一共有几个列
+    private int currentCenterColumnIndex = -1; //当前居中的列
 
     //private static WaitForSeconds delay = new WaitForSeconds(1 / 60f);
     //private Coroutine coroutine;
@@ -99,6 +100,7 @@ public class HexGrid : MonoBehaviour
         cellCountX = x;
         cellCountZ = z;
         wrapping = isWrapping;
+        currentCenterColumnIndex = -1;
         HexMetrics.wrapSize = wrapping ? cellCountX : 0;
         chunkCountX = cellCountX / HexMetrics.chunkSizeX;
         chunkCountZ = cellCountZ / HexMetrics.chunkSizeZ;
@@ -534,7 +536,7 @@ public class HexGrid : MonoBehaviour
 
         currentPathFrom = currentPathTo = null;
     }
-    
+
     /// <summary>
     /// 得到路径
     /// </summary>
@@ -683,6 +685,56 @@ public class HexGrid : MonoBehaviour
         }
 
         ListPool<HexCell>.Add(cells);
+    }
+
+    #endregion
+
+    #region Wrapping
+
+    /// <summary>
+    /// 居中地图
+    /// </summary>
+    public void CenterMap(float xPosition)
+    {
+        var chunkSizeX = (HexMetrics.innerDiameter * HexMetrics.chunkSizeX);
+
+        int centerColumnIndex = (int) (xPosition / chunkSizeX);
+
+        if (centerColumnIndex == currentCenterColumnIndex)
+        {
+            return;
+        }
+
+        currentCenterColumnIndex = centerColumnIndex;
+
+        int halfColumn = chunkCountX / 2;
+        int minColumnIndex = centerColumnIndex - halfColumn;
+        int maxColumnIndex = centerColumnIndex + halfColumn;
+
+        Vector3 position;
+        position.y = position.z = 0f;
+
+        for (int i = 0; i < columns.Length; i++)
+        {
+            position.x = 0f;
+
+            //刚开始整个地图的中心点是0
+            //往左边,则直接为左边大块的中心点,右同理
+            if (i < minColumnIndex)
+            {
+                position.x = chunkCountX * chunkSizeX;
+            }
+            else if (i > maxColumnIndex)
+            {
+                position.x = chunkCountX * -chunkSizeX;
+            }
+            else
+            {
+                position.x = 0f;
+            }
+
+            columns[i].localPosition = position;
+        }
     }
 
     #endregion
