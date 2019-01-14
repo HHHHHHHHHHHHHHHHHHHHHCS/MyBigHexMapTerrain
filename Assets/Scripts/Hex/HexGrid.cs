@@ -165,19 +165,41 @@ public class HexGrid : MonoBehaviour
         cell.ShaderData = cellShaderData;
         cell.Exploration = x > 0 && z > 0 && x < cellCountX - 1 && z < cellCountZ - 1;
 
-        if (x > 0) cell.SetNeighbor(HexDirection.W, cells[i - 1]);
+        if (x > 0)
+        {
+            cell.SetNeighbor(HexDirection.W, cells[i - 1]);
+            if(wrapping && x == cellCountX - 1)
+            {//循环收尾相接
+                cell.SetNeighbor(HexDirection.E,cells[i - x]);
+            }
+        }
 
         if (z > 0)
         {
             if ((z & 1) == 0)
-            {
+            {//奇偶判断
                 cell.SetNeighbor(HexDirection.SE, cells[i - cellCountX]);
-                if (x > 0) cell.SetNeighbor(HexDirection.SW, cells[i - cellCountX - 1]);
+                if (x > 0)
+                {
+                    cell.SetNeighbor(HexDirection.SW, cells[i - cellCountX - 1]);
+                }
+                else if (wrapping)
+                {//循环收尾相接
+                    cell.SetNeighbor(HexDirection.SW, cells[i - 1]);
+                }
             }
             else
             {
                 cell.SetNeighbor(HexDirection.SW, cells[i - cellCountX]);
-                if (x < cellCountX - 1) cell.SetNeighbor(HexDirection.SE, cells[i - cellCountX + 1]);
+                if (x < cellCountX - 1)
+                {
+                    cell.SetNeighbor(HexDirection.SE, cells[i - cellCountX + 1]);
+
+                }
+                else if (wrapping)
+                {//循环收尾相接
+                    cell.SetNeighbor(HexDirection.SE, cells[i - cellCountX * 2 + 1]);
+                }
             }
         }
 
@@ -227,10 +249,9 @@ public class HexGrid : MonoBehaviour
     public HexCell GetCell(Vector3 position)
     {
         position = transform.InverseTransformPoint(position);
+        //这里是循环坐标,所以用重新计算coordinates,
         var coordinates = HexCoordinates.FromPosition(position);
-        var index = coordinates.X + coordinates.Z * cellCountX + coordinates.Z / 2;
-        //Debug.Log("touched at:" + coordinates);//坐标
-        return cells[index];
+        return GetCell(coordinates);
     }
 
     /// <summary>

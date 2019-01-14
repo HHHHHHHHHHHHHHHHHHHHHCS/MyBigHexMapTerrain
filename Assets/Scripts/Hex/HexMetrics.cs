@@ -1,4 +1,4 @@
-﻿#define _test//去掉_ 进行测试模式
+﻿#define _test //去掉_ 进行测试模式
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,7 +16,7 @@ public sealed class HexMetrics
     /// <summary>
     /// 到边的率
     /// </summary>
-    public const float outerInner = 0.866025404f;//根号(3)/2 
+    public const float outerInner = 0.866025404f; //根号(3)/2 
 
     /// <summary>
     /// 到顶点的率
@@ -172,22 +172,24 @@ public sealed class HexMetrics
     /// </summary>
     private static Vector3[] corners =
     {
-        new Vector3(0f,0f,outerRadius),
-        new Vector3(innerRadius,0f,0.5f*outerRadius),
-        new Vector3(innerRadius,0f,-0.5f*outerRadius),
-        new Vector3(0f,0f,-outerRadius),
-        new Vector3(-innerRadius,0f,-0.5f*outerRadius),
-        new Vector3(-innerRadius,0f,0.5f*outerRadius),
-        new Vector3(0f,0f,outerRadius),
+        new Vector3(0f, 0f, outerRadius),
+        new Vector3(innerRadius, 0f, 0.5f * outerRadius),
+        new Vector3(innerRadius, 0f, -0.5f * outerRadius),
+        new Vector3(0f, 0f, -outerRadius),
+        new Vector3(-innerRadius, 0f, -0.5f * outerRadius),
+        new Vector3(-innerRadius, 0f, 0.5f * outerRadius),
+        new Vector3(0f, 0f, outerRadius),
     };
 
     /// <summary>
     /// 装饰物的随机概率
     /// </summary>
-    private static readonly float[][] featureThresholds ={
-        new float[]{0.0f,0.0f,0.4f},
-        new float[]{0.0f,0.4f,0.6f},
-        new float[]{0.4f,0.6f,0.8f},};
+    private static readonly float[][] featureThresholds =
+    {
+        new float[] {0.0f, 0.0f, 0.4f},
+        new float[] {0.0f, 0.4f, 0.6f},
+        new float[] {0.4f, 0.6f, 0.8f},
+    };
 
     /// <summary>
     /// 循环地图的尺寸
@@ -212,7 +214,7 @@ public sealed class HexMetrics
     /// <returns></returns>
     public static Vector3 GetFirstCorner(HexDirection direction)
     {
-        return corners[(int)direction];
+        return corners[(int) direction];
     }
 
     /// <summary>
@@ -222,7 +224,7 @@ public sealed class HexMetrics
     /// <returns></returns>
     public static Vector3 GetSecondCorner(HexDirection direction)
     {
-        return corners[(int)direction + 1];
+        return corners[(int) direction + 1];
     }
 
     /// <summary>
@@ -252,8 +254,8 @@ public sealed class HexMetrics
     /// <returns></returns>
     public static Vector3 GetSolidEdgeMiddle(HexDirection direction)
     {
-        return (corners[(int)direction] + corners[(int)direction + 1])
-            * (0.5f * solidFactor);
+        return (corners[(int) direction] + corners[(int) direction + 1])
+               * (0.5f * solidFactor);
     }
 
     /// <summary>
@@ -263,8 +265,8 @@ public sealed class HexMetrics
     /// <returns></returns>
     public static Vector3 GetBridge(HexDirection direction)
     {
-        return (corners[(int)direction] + corners[(int)direction + 1])
-                * blendFactor;
+        return (corners[(int) direction] + corners[(int) direction + 1])
+               * blendFactor;
     }
 
     /// <summary>
@@ -315,6 +317,7 @@ public sealed class HexMetrics
         {
             return HexEdgeType.Slope;
         }
+
         return HexEdgeType.Cliff;
     }
 
@@ -325,7 +328,23 @@ public sealed class HexMetrics
     /// <returns></returns>
     public static Vector4 SampleNoise(Vector3 position)
     {
-        return noiseSource.GetPixelBilinear(position.x * noiseScale, position.y * noiseScale);
+        Vector4 sample = noiseSource.GetPixelBilinear(
+            position.x * noiseScale,
+            position.z * noiseScale
+        );
+
+        if (Wrapping && position.x < innerDiameter * 1.5f)
+        {
+            Vector4 sample2 = noiseSource.GetPixelBilinear(
+                (position.x + wrapSize * innerDiameter) * noiseScale,
+                position.z * noiseScale
+            );
+            sample = Vector4.Lerp(
+                sample2, sample, position.x * (1f / innerDiameter) - 0.5f
+            );
+        }
+
+        return sample;
     }
 
     /// <summary>
@@ -371,7 +390,7 @@ public sealed class HexMetrics
     public static Vector3 GetWaterBridge(HexDirection direction)
     {
         return (GetFirstCorner(direction) + GetSecondCorner(direction))
-            * waterBlendFactor;
+               * waterBlendFactor;
     }
 
     /// <summary>
@@ -386,7 +405,8 @@ public sealed class HexMetrics
         {
             hashGrid[i] = HexHash.Create();
         }
-        Random.state=currentState;
+
+        Random.state = currentState;
     }
 
     /// <summary>
@@ -396,12 +416,13 @@ public sealed class HexMetrics
     /// <returns></returns>
     public static HexHash SampleHashGrid(Vector3 position)
     {
-        int x = (int)(position.x * hashGridScale) % hashGridSize;
+        int x = (int) (position.x * hashGridScale) % hashGridSize;
         if (x < 0)
         {
             x += hashGridSize;
         }
-        int z = (int)(position.z * hashGridScale) % hashGridSize;
+
+        int z = (int) (position.z * hashGridScale) % hashGridSize;
         if (z < 0)
         {
             z += hashGridSize;
@@ -447,7 +468,7 @@ public sealed class HexMetrics
         near.z += (far.z - near.z) * 0.5f;
         float v =
             near.y < far.y ? wallElevationOffset : (1f - wallElevationOffset);
-        near.y += (far.y - near.y) * v+wallYOffset;
+        near.y += (far.y - near.y) * v + wallYOffset;
         return near;
     }
 }

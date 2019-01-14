@@ -28,15 +28,21 @@ public struct HexCoordinates
 
     public HexCoordinates(int x, int z)
     {
+        if (HexMetrics.Wrapping)
+        {//正确循环尺寸
+            int oX = x + z / 2;
+            if (oX < 0)
+            {
+                x += HexMetrics.wrapSize;
+            }
+            else if (oX >= HexMetrics.wrapSize)
+            {
+                x -= HexMetrics.wrapSize;
+            }
+        }
+
         this.x = x;
         this.y = -x - z;
-        this.z = z;
-    }
-
-    public HexCoordinates(int x, int y, int z)
-    {
-        this.x = x;
-        this.y = y;
         this.z = z;
     }
 
