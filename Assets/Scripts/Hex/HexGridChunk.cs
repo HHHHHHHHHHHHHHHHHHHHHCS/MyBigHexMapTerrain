@@ -1131,6 +1131,16 @@ public class HexGridChunk : MonoBehaviour
         water.AddTriangleCellData(indices, weights1);
 
         Vector3 center2 = neighbor.Position;
+        //水的世界地图循环
+        if (neighbor.ColumnIndex < cell.ColumnIndex - 1)
+        {//自己在最右边,邻居在最左边
+            center2.x += HexMetrics.wrapSize * HexMetrics.innerDiameter;
+        }
+        else if (neighbor.ColumnIndex > cell.ColumnIndex + 1)
+        {//自己在最左边,邻居在最右边
+            center2.x -= HexMetrics.wrapSize * HexMetrics.innerDiameter;
+        }
+
         center2.y = center.y;
         EdgeVertices e2 = new EdgeVertices(
             center2 + HexMetrics.GetSecondSolidCorner(direction.Opposite())
@@ -1159,8 +1169,18 @@ public class HexGridChunk : MonoBehaviour
 
         HexCell nextNeighbor = cell.GetNeighbor(direction.Next());
         if (nextNeighbor != null)
-        {
-            Vector3 v3 = nextNeighbor.Position + (nextNeighbor.IsUnderwater
+        {//这里形成小三角用
+            Vector3 center3 = nextNeighbor.Position;
+            if (nextNeighbor.ColumnIndex < cell.ColumnIndex - 1)
+            {//自己在最右边,邻居在最左边
+                center3.x += HexMetrics.wrapSize * HexMetrics.innerDiameter;
+            }
+            else if (nextNeighbor.ColumnIndex > cell.ColumnIndex + 1)
+            {//自己在最左边,邻居在最右边
+                center3.x -= HexMetrics.wrapSize * HexMetrics.innerDiameter;
+            }
+
+            Vector3 v3 = center3 + (nextNeighbor.IsUnderwater
                              ? HexMetrics.GetFirstWaterCorner(direction.Previous())
                              : HexMetrics.GetFirstSolidCorner(direction.Previous()));
             v3.y = center.y;

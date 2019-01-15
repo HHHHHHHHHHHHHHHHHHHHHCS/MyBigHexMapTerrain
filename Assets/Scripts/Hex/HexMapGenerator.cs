@@ -171,7 +171,7 @@ public class HexMapGenerator : MonoBehaviour
     /// <summary>
     /// 侵蚀打磨程度
     /// </summary>
-    [Range(0, 100)] public int erosionPercentage = 50;
+    [Range(0, 1f)] public float erosionPercentage = 0.5f;
 
     /// <summary>
     /// 土地初始的水分
@@ -330,6 +330,7 @@ public class HexMapGenerator : MonoBehaviour
         }
 
         var grid = HexGrid.Instance;
+        int borderX = grid.wrapping?regionBorder:mapBorderX;
         MapRegion region;
         int countX = grid.cellCountX, countZ = grid.cellCountZ;
         //-----地形的规则裁块-----
@@ -338,8 +339,12 @@ public class HexMapGenerator : MonoBehaviour
             //1或者其他
             default:
             {
-                region.xMin = mapBorderX;
-                region.xMax = countX - mapBorderX;
+                if (grid.wrapping)
+                {
+                    borderX = 0;
+                }
+                region.xMin = borderX;
+                region.xMax = countX - borderX;
                 region.zMin = mapBorderZ;
                 region.zMax = countZ - mapBorderZ;
                 regions.Add(region);
@@ -350,20 +355,24 @@ public class HexMapGenerator : MonoBehaviour
                 if (Random.value < 0.5f)
                 {
                     var halfX = countX / 2;
-                    region.xMin = mapBorderX;
+                    region.xMin = borderX;
                     region.xMax = halfX - regionBorder;
                     region.zMin = mapBorderZ;
                     region.zMax = countZ - mapBorderZ;
                     regions.Add(region);
                     region.xMin = halfX + regionBorder;
-                    region.xMax = countX - mapBorderX;
+                    region.xMax = countX - borderX;
                     regions.Add(region);
                 }
                 else
                 {
+                    if (grid.wrapping)
+                    {
+                        borderX=0;
+                    }
                     var halfZ = countZ / 2;
-                    region.xMin = mapBorderX;
-                    region.xMax = countX - mapBorderX;
+                    region.xMin = borderX;
+                    region.xMax = countX - borderX;
                     region.zMin = mapBorderZ;
                     region.zMax = halfZ - regionBorder;
                     regions.Add(region);
@@ -377,7 +386,7 @@ public class HexMapGenerator : MonoBehaviour
             case 3:
             {
                 int x_1_3 = countX / 3, x_2_3 = x_1_3 * 2;
-                region.xMin = mapBorderX;
+                region.xMin = borderX;
                 region.xMax = x_1_3 - regionBorder;
                 region.zMin = mapBorderZ;
                 region.zMax = countZ - mapBorderZ;
@@ -386,25 +395,25 @@ public class HexMapGenerator : MonoBehaviour
                 region.xMax = x_2_3 - regionBorder;
                 regions.Add(region);
                 region.xMin = x_2_3 + regionBorder;
-                region.xMax = countX - mapBorderX;
+                region.xMax = countX - borderX;
                 regions.Add(region);
                 break;
             }
             case 4:
             {
                 int halfX = countX / 2, halfZ = countZ / 2;
-                region.xMin = mapBorderX;
+                region.xMin = borderX;
                 region.xMax = halfX - regionBorder;
                 region.zMin = mapBorderZ;
                 region.zMax = halfZ - regionBorder;
                 regions.Add(region);
                 region.xMin = halfX + regionBorder;
-                region.xMax = countX - mapBorderX;
+                region.xMax = countX - borderX;
                 regions.Add(region);
                 region.zMin = halfZ + regionBorder;
                 region.zMax = countZ - mapBorderZ;
                 regions.Add(region);
-                region.xMin = mapBorderX;
+                region.xMin = borderX;
                 region.xMax = countX - regionBorder;
                 regions.Add(region);
                 break;
@@ -585,7 +594,7 @@ public class HexMapGenerator : MonoBehaviour
         }
 
         //要打磨的块的个数
-        int targetErodibleCount = (int) (erodibleCells.Count * (100 - erosionPercentage) * 0.01f);
+        int targetErodibleCount = (int) (erodibleCells.Count * (1 - erosionPercentage) );
 
         while (erodibleCells.Count > targetErodibleCount)
         {

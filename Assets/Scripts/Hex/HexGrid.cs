@@ -162,6 +162,7 @@ public class HexGrid : MonoBehaviour
         cell.transform.localPosition = position;
         cell.coordinates = HexCoordinates.FromOffsetCoordinates(x, z);
         cell.Index = i;
+        cell.ColumnIndex = x / HexMetrics.chunkSizeX;
         cell.ShaderData = cellShaderData;
         cell.Exploration = x > 0 && z > 0 && x < cellCountX - 1 && z < cellCountZ - 1;
 

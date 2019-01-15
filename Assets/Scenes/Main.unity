@@ -3103,7 +3103,7 @@ MonoBehaviour:
   mapBorderZ: 5
   regionBorder: 5
   regionCount: 1
-  erosionPercentage: 50
+  erosionPercentage: 0.5
   startingMoisture: 0.1
   evaporationFactor: 0.5
   precipitationFactor: 0.25
@@ -8476,7 +8476,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1144187511
 GameObject:
   m_ObjectHideFlags: 0
@@ -15984,7 +15984,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &2115085970
 GameObject:
   m_ObjectHideFlags: 0

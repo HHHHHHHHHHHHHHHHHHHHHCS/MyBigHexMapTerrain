@@ -36,6 +36,11 @@ public class HexCell : MonoBehaviour
     //[field:SerializeField]//可以在编辑面板显示get set
     public int Index { get; set; }
 
+    /// <summary>
+    /// 属于哪个大块的列
+    /// </summary>
+    public int ColumnIndex { get; set; }
+
     public bool HasIncomingRiver
     {
         get => hasIncomingRiver;

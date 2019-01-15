@@ -9,7 +9,7 @@ using UnityEngine;
 [System.Serializable]
 public struct HexCoordinates
 {
-    [SerializeField] private int x, y, z;
+    [SerializeField] private int x, z;
 
     public int X
     {
@@ -18,7 +18,7 @@ public struct HexCoordinates
 
     public int Y
     {
-        get { return y; }
+        get { return -x-z; }
     }
 
     public int Z
@@ -42,7 +42,6 @@ public struct HexCoordinates
         }
 
         this.x = x;
-        this.y = -x - z;
         this.z = z;
     }
 
@@ -85,10 +84,39 @@ public struct HexCoordinates
     public int DistanceTo(HexCoordinates other)
     {
         int _x = x < other.x ? other.x - x : x - other.x;
-        int _y = y < other.y ? other.y - y : y - other.y;
+        int _y = Y < other.Y ? other.Y - Y : Y - other.Y;
+
+        int _xy = _x + _y;
+
+        if (HexMetrics.Wrapping)
+        {//地形循环
+
+            //如果左侧到右侧的寻路
+            other.x += HexMetrics.wrapSize;
+            _x = x < other.x ? other.x - x : x - other.x;
+            _y = Y < other.Y ? other.Y - Y : Y - other.Y;
+            var xyWrapped = _x + _y;
+            if (xyWrapped < _xy)
+            {
+                _xy = xyWrapped;
+            }
+            else
+            {//因为上面加了HexMetrics.wrapSize 所以这里减两倍
+                other.x -= 2 * HexMetrics.wrapSize;
+                _x = x < other.x ? other.x - x : x - other.x;
+                _y = Y < other.Y ? other.Y - Y : Y - other.Y;
+
+                xyWrapped = _x + _y;
+                if (xyWrapped < _xy)
+                {
+                    _xy = xyWrapped;
+                }
+            }
+        }
+
         int _z = z < other.z ? other.z - z : z - other.z;
         //除以2 是因为x+y+z=0 但是我们这边取abs 了 所以除以2
-        return (_x + _y + _z) / 2;
+        return (_xy + _z) / 2;
     }
 
     public void Save(MyWriter writer)
