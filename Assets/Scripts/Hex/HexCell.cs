@@ -116,7 +116,6 @@ public class HexCell : MonoBehaviour
         }
     }
 
-
     public Vector3 Position
     {
         get => transform.localPosition;
@@ -280,14 +279,14 @@ public class HexCell : MonoBehaviour
     /// <summary>
     /// 战争迷雾的可见
     /// </summary>
-    public bool IsVisible => visibility > 0 && Exploration;
+    public bool IsVisible => visibility > 0 && Explorable;
 
     /// <summary>
     /// 是否被探索过
     /// </summary>
     public bool IsExplored
     {
-        get => explored && Exploration;
+        get => explored && Explorable;
         private set => explored = value;
     }
 
@@ -299,7 +298,7 @@ public class HexCell : MonoBehaviour
     /// <summary>
     /// 格子边界隐藏用,因为地形忽然结束会很奇怪
     /// </summary>
-    public bool Exploration { get; set; }
+    public bool Explorable { get; set; }
 
     public void UpdateDistanceLabel()
     {

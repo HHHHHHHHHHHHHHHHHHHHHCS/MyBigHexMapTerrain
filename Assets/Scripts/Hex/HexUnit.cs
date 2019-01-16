@@ -5,15 +5,15 @@ using UnityEngine;
 
 public class HexUnit : MonoBehaviour
 {
-    private const float traveSpeed = 4f;
     private const float rotationSpeed = 180f;
+    private const float travelSpeed = 4f;
     private const int visionRange = 3;
 
     public static HexUnit unitPrefab;
 
     public int Speed => 24;
 
-    private HexCell location,currentTracelLocation;
+    private HexCell location, currentTravelLocation;
     private float orientation;
     private List<HexCell> pathToTravel;
     private Coroutine cor;
@@ -24,15 +24,17 @@ public class HexUnit : MonoBehaviour
 
         set
         {
+            var grid = HexGrid.Instance;
             if (location)
             {
-                HexGrid.Instance.DecreaseVisibility(location, visionRange);
+                grid.DecreaseVisibility(location, visionRange);
                 location.Unit = null;
             }
 
             location = value;
             value.Unit = this;
-            HexGrid.Instance.IncreaseVisibility(value, visionRange);
+            grid.IncreaseVisibility(value, visionRange);
+            grid.MakeChildOfColumn(transform, value.ColumnIndex);
             transform.localPosition = value.Position;
         }
     }
@@ -58,11 +60,11 @@ public class HexUnit : MonoBehaviour
         if (location)
         {
             transform.localPosition = location.Position;
-            if (currentTracelLocation)
+            if (currentTravelLocation)
             {
                 HexGrid.Instance.IncreaseVisibility(location, visionRange);
-                HexGrid.Instance.DecreaseVisibility(currentTracelLocation, visionRange);
-                currentTracelLocation = null;
+                HexGrid.Instance.DecreaseVisibility(currentTravelLocation, visionRange);
+                currentTravelLocation = null;
             }
         }
     }
@@ -107,6 +109,7 @@ public class HexUnit : MonoBehaviour
         {
             return -1;
         }
+
         if (fromCell.Walled != toCell.Walled)
         {
             return -1;
@@ -148,6 +151,20 @@ public class HexUnit : MonoBehaviour
     /// </summary>
     private IEnumerator LookAt(Vector3 point)
     {
+        if (HexMetrics.Wrapping)
+        {
+            float xDistance = point.x - transform.localPosition.x;
+            var offset = HexMetrics.innerDiameter * HexMetrics.wrapSize;
+            if (xDistance < -offset)
+            {
+                point.x += offset;
+            }
+            else if (xDistance > offset)
+            {
+                point.x -= offset;
+            }
+        }
+
         point.y = transform.localPosition.y;
         Quaternion fromRotation = transform.localRotation;
         Quaternion toRotation =
@@ -169,41 +186,60 @@ public class HexUnit : MonoBehaviour
     }
 
     /// <summary>
-    /// 根据路径行走
+    /// 根据路径行走,这里涉及到地图循环
     /// </summary>
     public IEnumerator TravelPath()
     {
         Vector3 a, b, c = pathToTravel[0].Position;
         yield return LookAt(pathToTravel[1].Position);
-        HexGrid.Instance.DecreaseVisibility(
-            currentTracelLocation?? pathToTravel[0], visionRange);
+
+        if (!currentTravelLocation)
+        {
+            currentTravelLocation = pathToTravel[0];
+        }
+
+        //地图循环,重新设置父亲节点
+        HexGrid.Instance.DecreaseVisibility(currentTravelLocation, VisionRange);
+        int currentColumn = currentTravelLocation.ColumnIndex;
 
         //第一帧是移动的
-        float t = Time.deltaTime * traveSpeed;
-        for (int i = 1; i <= pathToTravel.Count; i++)
+        float t = Time.deltaTime * travelSpeed;
+        for (int i = 1; i < pathToTravel.Count; i++)
         {
-            var tempI = i - 1;
-
+            currentTravelLocation = pathToTravel[i];
             a = c;
-            b = pathToTravel[tempI].Position;
-            if (i == pathToTravel.Count)
+            b = pathToTravel[i-1].Position;
+
+            int nextColumn = currentTravelLocation.ColumnIndex;
+            if (currentColumn != nextColumn)
             {
-                c = b;
-            }
-            else
-            {
-                currentTracelLocation = pathToTravel[i];
-                c = (b + currentTracelLocation.Position) * 0.5f;
+                if (nextColumn < currentColumn - 1)
+                {
+                    //地图循环
+                    var offset = HexMetrics.innerDiameter * HexMetrics.wrapSize;
+                    a.x -= offset;
+                    b.x -= offset;
+                }
+                else if (nextColumn > currentColumn + 1)
+                {
+                    var offset = HexMetrics.innerDiameter * HexMetrics.wrapSize;
+                    a.x += offset;
+                    b.x += offset;
+                }
+
+                HexGrid.Instance.MakeChildOfColumn(transform, nextColumn);
+                currentColumn = nextColumn;
             }
 
-            HexGrid.Instance.IncreaseVisibility(pathToTravel[tempI], visionRange);
+            c = (b + currentTravelLocation.Position) * 0.5f;
+            HexGrid.Instance.IncreaseVisibility(pathToTravel[i], visionRange);
+
             //用这种-1 的模式 因为帧数太卡
             //Time.deltaTime过大 可能一步走的过大 
             //第二次重置了 过大+继续走=不正确
             //如果是-1模式 则对第一步做补偿
-            for (; t < 1f; t += Time.deltaTime * traveSpeed)
+            for (; t < 1f; t += Time.deltaTime * travelSpeed)
             {
-  
                 transform.localPosition = Bezier.GetPoint(a, b, c, t);
                 Vector3 d = Bezier.GetDerivative(a, b, c, t);
                 d.y = 0;
@@ -211,17 +247,27 @@ public class HexUnit : MonoBehaviour
                 yield return null;
             }
 
-            if (i != pathToTravel.Count)
-            {
-                HexGrid.Instance.DecreaseVisibility(pathToTravel[tempI], visionRange);
-            }
-
+            HexGrid.Instance.DecreaseVisibility(pathToTravel[i], visionRange);
             t -= 1f;
         }
 
-        currentTracelLocation = null;
+        currentTravelLocation = null;
+
+        a = c;
+        b = location.Position;
+        c = b;
+        HexGrid.Instance.IncreaseVisibility(location, VisionRange);
+        for (; t < 1f; t += Time.deltaTime * travelSpeed)
+        {
+            transform.localPosition = Bezier.GetPoint(a, b, c, t);
+            Vector3 d = Bezier.GetDerivative(a, b, c, t);
+            d.y = 0f;
+            transform.localRotation = Quaternion.LookRotation(d);
+            yield return null;
+        }
 
         transform.localPosition = location.Position;
+        orientation = transform.localRotation.eulerAngles.y;
         ListPool<HexCell>.Add(pathToTravel);
         cor = null;
         pathToTravel = null;

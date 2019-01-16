@@ -38,7 +38,8 @@ public class HexCellShaderData : MonoBehaviour
                 x, z, TextureFormat.RGBA32, false, true)
             {
                 filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp
+                wrapModeU = TextureWrapMode.Repeat,
+                wrapModeV = TextureWrapMode.Clamp
             };
             Shader.SetGlobalTexture("_HexCellData", cellTexture);
         }
@@ -117,7 +118,7 @@ public class HexCellShaderData : MonoBehaviour
             cellTextureData[index].r = cell.IsVisible ? (byte) 255 : (byte) 0;
             cellTextureData[index].g = cell.IsExplored ? (byte) 255 : (byte) 0;
         }
-        else if(cellTextureData[index].b!=255)
+        else if (cellTextureData[index].b != 255)
         {
             cellTextureData[index].b = 255;
             transitioningCells.Add(cell);
@@ -165,6 +166,7 @@ public class HexCellShaderData : MonoBehaviour
         {
             data.b = 0;
         }
+
         cellTextureData[index] = data;
         return stillUpdating;
     }
@@ -172,11 +174,11 @@ public class HexCellShaderData : MonoBehaviour
     /// <summary>
     /// 设置细胞的数据
     /// </summary>
-    public void SetMapData(HexCell cell,float data)
+    public void SetMapData(HexCell cell, float data)
     {
         data = Mathf.Clamp01(data);
         //因为探索用了255,所以这里用254
-        cellTextureData[cell.Index].b = (byte)(data * 254f);
+        cellTextureData[cell.Index].b = (byte) (data * 254f);
         enabled = true;
     }
 
